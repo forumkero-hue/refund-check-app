@@ -1,126 +1,230 @@
-// Telegram Web App инициализация
+// Telegram Web App
 const tg = window.Telegram.WebApp;
-
-// Расширяем на весь экран
 tg.expand();
 tg.setHeaderColor('#667eea');
 tg.setBackgroundColor('#667eea');
 
-// Переменные состояния
-let currentScreen = 'mainScreen';
+// Variables
+let currentScreen = 'languageScreen';
+let selectedLanguage = 'ru';
 let captchaCompleted = false;
 let checkCount = 3004;
+let particlesInterval;
 
-// Инициализация при загрузке
+// Initialize
 document.addEventListener('DOMContentLoaded', function() {
-    // Сразу показываем главный экран (без выбора языка)
-    showScreen('mainScreen');
-    
-    // Инициализация загрузки файлов
+    initParticles();
+    initLanguageSelection();
     initFileUpload();
-    
-    // Инициализация капчи
     initCaptcha();
-    
-    // Обновляем статистику каждые 5 минут
     updateStats();
-    setInterval(updateStats, 300000); // 5 минут
     
-    // Добавляем прогресс бар в DOM
-    addProgressBar();
+    // Auto-update stats
+    setInterval(updateStats, 60000); // 1 minute
 });
 
-// Добавить прогресс бар
-function addProgressBar() {
-    const uploadBox = document.getElementById('uploadBox');
-    if (uploadBox) {
-        uploadBox.insertAdjacentHTML('afterend', `
-            <div class="progress-container" id="progressContainer">
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
-                <div class="progress-text" id="progressText">0%</div>
-            </div>
-        `);
+// Particles Background
+function initParticles() {
+    const particlesContainer = document.getElementById('particles');
+    const colors = [
+        'rgba(0, 150, 255, 0.6)',
+        'rgba(102, 126, 234, 0.6)',
+        'rgba(52, 199, 255, 0.6)',
+        'rgba(0, 200, 255, 0.6)',
+        'rgba(255, 255, 255, 0.4)'
+    ];
+    
+    for (let i = 0; i < 50; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        
+        // Random properties
+        const size = Math.random() * 4 + 2;
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        const posX = Math.random() * 100;
+        const posY = Math.random() * 100;
+        const duration = Math.random() * 20 + 10;
+        const delay = Math.random() * 5;
+        
+        particle.style.cssText = `
+            position: absolute;
+            width: ${size}px;
+            height: ${size}px;
+            background: ${color};
+            border-radius: 50%;
+            left: ${posX}%;
+            top: ${posY}%;
+            animation: float ${duration}s ease-in-out ${delay}s infinite;
+            filter: blur(${size/2}px);
+            box-shadow: 0 0 ${size*2}px ${size}px ${color};
+        `;
+        
+        particlesContainer.appendChild(particle);
     }
+    
+    // Add CSS animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
+            25% { transform: translateY(-20px) translateX(10px); opacity: 0.6; }
+            50% { transform: translateY(10px) translateX(-10px); opacity: 0.8; }
+            75% { transform: translateY(-10px) translateX(-5px); opacity: 0.6; }
+        }
+    `;
+    document.head.appendChild(style);
 }
 
-// Показать экран
+// Language Selection
+function initLanguageSelection() {
+    const languageItems = document.querySelectorAll('.language-item');
+    
+    languageItems.forEach(item => {
+        item.addEventListener('click', function() {
+            // Remove active from all
+            languageItems.forEach(i => i.classList.remove('active'));
+            
+            // Add active to clicked
+            this.classList.add('active');
+            
+            // Set language
+            const langCode = this.querySelector('.language-code').textContent;
+            selectedLanguage = langCode.toLowerCase();
+            
+            // Update text based on language
+            updateTextByLanguage();
+        });
+    });
+}
+
+function updateTextByLanguage() {
+    const texts = {
+        ru: {
+            continue: 'Продолжить',
+            greeting: 'Привет, клейм',
+            upload: 'Загрузить файл',
+            captcha: 'Подтвердите, что вы человек',
+            slider: '>> Проведите вправо >>'
+        },
+        en: {
+            continue: 'Continue',
+            greeting: 'Hello, claim',
+            upload: 'Upload file',
+            captcha: 'Confirm you are human',
+            slider: '>> Slide to the right >>'
+        },
+        ua: {
+            continue: 'Продовжити',
+            greeting: 'Привіт, клейм',
+            upload: 'Завантажити файл',
+            captcha: 'Підтвердіть, що ви людина',
+            slider: '>> Проведіть праворуч >>'
+        }
+    };
+    
+    const langTexts = texts[selectedLanguage] || texts.ru;
+    
+    // Update all texts
+    document.querySelectorAll('.action-btn').forEach(btn => {
+        if (btn.textContent.includes('Продолжить') || 
+            btn.textContent.includes('Continue') || 
+            btn.textContent.includes('Продовжити')) {
+            btn.innerHTML = `${langTexts.continue} <i class="fas fa-arrow-right"></i>`;
+        }
+    });
+    
+    const greeting = document.querySelector('.greeting');
+    if (greeting) greeting.textContent = langTexts.greeting;
+    
+    const uploadText = document.querySelector('.upload-text');
+    if (uploadText) uploadText.textContent = langTexts.upload;
+    
+    const captchaTitle = document.querySelector('.captcha-title');
+    if (captchaTitle) captchaTitle.textContent = langTexts.captcha;
+    
+    const sliderText = document.querySelector('.slider-text');
+    if (sliderText) sliderText.textContent = langTexts.slider;
+}
+
+// Continue to Main Screen
+function continueToMain() {
+    showScreen('mainScreen');
+    document.getElementById('backBtn').style.display = 'block';
+}
+
+// Show Screen
 function showScreen(screenId) {
-    // Скрываем все экраны
     document.querySelectorAll('.screen').forEach(screen => {
         screen.classList.remove('active');
     });
     
-    // Показываем нужный экран
     const targetScreen = document.getElementById(screenId);
     if (targetScreen) {
         targetScreen.classList.add('active');
         currentScreen = screenId;
-        
-        // Прокручиваем вверх
         window.scrollTo(0, 0);
         
-        // Если вернулись на главный экран, обновляем статистику
-        if (screenId === 'mainScreen') {
-            updateStats();
+        // Update back button visibility
+        const backBtn = document.getElementById('backBtn');
+        if (screenId === 'languageScreen') {
+            backBtn.style.display = 'none';
+        } else if (screenId === 'mainScreen') {
+            backBtn.style.display = 'block';
+            backBtn.onclick = () => showScreen('languageScreen');
+        } else if (screenId === 'captchaScreen') {
+            backBtn.style.display = 'block';
+            backBtn.onclick = () => showScreen('mainScreen');
         }
     }
 }
 
-// Обновить статистику
+// Update Stats
 function updateStats() {
-    // Увеличиваем счетчик проверок на случайное число
-    const randomIncrease = Math.floor(Math.random() * 10) + 1;
+    // Random increase
+    const randomIncrease = Math.floor(Math.random() * 5) + 1;
     checkCount += randomIncrease;
     
-    // Обновляем отображение
-    const statsElement = document.getElementById('todayChecks');
-    if (statsElement) {
-        // Форматируем число с пробелом
-        statsElement.textContent = checkCount.toLocaleString('ru-RU');
-    }
+    // Format number
+    const formatted = checkCount.toLocaleString('ru-RU');
+    
+    // Update all stats elements
+    document.querySelectorAll('.stats-number, #todayChecks, #totalChecks').forEach(el => {
+        el.textContent = formatted;
+    });
 }
 
-// ЗАГРУЗКА ФАЙЛОВ
+// File Upload
 function initFileUpload() {
-    const uploadBox = document.getElementById('uploadBox');
+    const uploadArea = document.getElementById('uploadArea');
     const fileInput = document.getElementById('fileInput');
     
-    if (!uploadBox || !fileInput) return;
+    if (!uploadArea || !fileInput) return;
     
-    // Клик по области загрузки
-    uploadBox.addEventListener('click', function() {
-        fileInput.click();
-    });
+    // Click upload
+    uploadArea.addEventListener('click', () => fileInput.click());
     
-    // Обработка выбора файла
+    // File selection
     fileInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
-        if (file) {
-            processFile(file);
-        }
+        if (file) processFile(file);
     });
     
-    // Drag & Drop
-    uploadBox.addEventListener('dragover', function(e) {
+    // Drag & drop
+    uploadArea.addEventListener('dragover', function(e) {
         e.preventDefault();
-        uploadBox.style.background = 'rgba(255, 255, 255, 0.25)';
-        uploadBox.style.borderColor = '#5AC8FA';
-        uploadBox.style.transform = 'translateY(-5px)';
+        this.style.background = 'rgba(255, 255, 255, 0.12)';
+        this.style.borderColor = 'rgba(0, 200, 255, 0.8)';
     });
     
-    uploadBox.addEventListener('dragleave', function() {
-        uploadBox.style.background = '';
-        uploadBox.style.borderColor = '#007AFF';
-        uploadBox.style.transform = '';
+    uploadArea.addEventListener('dragleave', function() {
+        this.style.background = '';
+        this.style.borderColor = '';
     });
     
-    uploadBox.addEventListener('drop', function(e) {
+    uploadArea.addEventListener('drop', function(e) {
         e.preventDefault();
-        uploadBox.style.background = '';
-        uploadBox.style.borderColor = '#007AFF';
-        uploadBox.style.transform = '';
+        this.style.background = '';
+        this.style.borderColor = '';
         
         if (e.dataTransfer.files.length) {
             const file = e.dataTransfer.files[0];
@@ -129,78 +233,50 @@ function initFileUpload() {
     });
 }
 
-// Обработка файла
+// Process File
 function processFile(file) {
-    // Проверяем расширение
-    const validExtensions = ['.json', '.html', '.txt'];
+    const validExts = ['.json', '.html', '.txt'];
     const fileExt = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
     
-    if (!validExtensions.includes(fileExt)) {
+    if (!validExts.includes(fileExt)) {
         alert('❌ Пожалуйста, загрузите файл экспорта (.json, .html или .txt)');
         return;
     }
     
-    // Показываем прогресс
-    showProgressBar();
+    // Show loading state
+    const uploadArea = document.getElementById('uploadArea');
+    const originalHTML = uploadArea.innerHTML;
     
-    // Симуляция обработки файла
-    simulateFileProcessing(file);
-}
-
-// Показать прогресс бар
-function showProgressBar() {
-    const progressContainer = document.getElementById('progressContainer');
-    const progressFill = document.getElementById('progressFill');
-    const progressText = document.getElementById('progressText');
-    const uploadBox = document.getElementById('uploadBox');
+    uploadArea.innerHTML = `
+        <div class="upload-content">
+            <div class="upload-icon">
+                <i class="fas fa-spinner fa-spin"></i>
+            </div>
+            <div class="upload-text">Обработка...</div>
+            <div class="upload-subtext">${file.name}</div>
+        </div>
+    `;
+    uploadArea.style.cursor = 'default';
     
-    if (progressContainer && progressFill && progressText && uploadBox) {
-        // Скрываем кнопку загрузки
-        uploadBox.style.display = 'none';
+    // Simulate processing
+    setTimeout(() => {
+        // Show captcha
+        showScreen('captchaScreen');
         
-        // Показываем прогресс бар
-        progressContainer.style.display = 'block';
-        
-        // Анимация прогресса
-        let progress = 0;
-        const interval = setInterval(() => {
-            progress += 5;
-            progressFill.style.width = progress + '%';
-            progressText.textContent = progress + '%';
-            
-            if (progress >= 100) {
-                clearInterval(interval);
-                
-                // Переходим к капче через 0.5 секунды
-                setTimeout(() => {
-                    showScreen('captchaScreen');
-                    
-                    // Восстанавливаем кнопку загрузки
-                    setTimeout(() => {
-                        uploadBox.style.display = 'block';
-                        progressContainer.style.display = 'none';
-                        progressFill.style.width = '0%';
-                        progressText.textContent = '0%';
-                    }, 1000);
-                }, 500);
-            }
-        }, 100);
-    }
+        // Restore upload area
+        setTimeout(() => {
+            uploadArea.innerHTML = originalHTML;
+            uploadArea.style.cursor = 'pointer';
+            initFileUpload(); // Re-init events
+        }, 1000);
+    }, 2000);
 }
 
-// Симуляция обработки файла
-function simulateFileProcessing(file) {
-    console.log('📁 Обработка файла:', file.name);
-    console.log('📊 Размер:', (file.size / 1024).toFixed(2), 'KB');
-    
-    // Здесь будет реальная обработка файла
-    // Пока просто симуляция
-}
-
-// КАПЧА
+// CAPTCHA - КРАСИВАЯ КРУТИЛКА
 function initCaptcha() {
     const sliderHandle = document.getElementById('sliderHandle');
     const captchaSlider = document.getElementById('captchaSlider');
+    const sliderSuccess = document.getElementById('sliderSuccess');
     
     if (!sliderHandle || !captchaSlider) return;
     
@@ -209,222 +285,139 @@ function initCaptcha() {
     let currentX = 0;
     let maxDistance = 0;
     
-    // Получаем максимальное расстояние
+    // Update max distance
     function updateMaxDistance() {
-        maxDistance = captchaSlider.offsetWidth - sliderHandle.offsetWidth - 8;
+        maxDistance = captchaSlider.offsetWidth - sliderHandle.offsetWidth - 12;
     }
     
-    // Обновляем размеры
     updateMaxDistance();
     window.addEventListener('resize', updateMaxDistance);
     
-    // Начало перетаскивания
-    sliderHandle.addEventListener('mousedown', function(e) {
+    // Mouse events
+    sliderHandle.addEventListener('mousedown', startDrag);
+    sliderHandle.addEventListener('touchstart', function(e) {
+        startDrag(e.touches[0]);
+    });
+    
+    function startDrag(e) {
+        if (captchaCompleted) return;
+        
         isDragging = true;
         startX = e.clientX - sliderHandle.offsetLeft;
         sliderHandle.style.cursor = 'grabbing';
         document.body.style.userSelect = 'none';
         
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
-    });
-    
-    sliderHandle.addEventListener('touchstart', function(e) {
-        isDragging = true;
-        startX = e.touches[0].clientX - sliderHandle.offsetLeft;
-        sliderHandle.style.cursor = 'grabbing';
+        // Add active class
+        sliderHandle.classList.add('dragging');
         
-        document.addEventListener('touchmove', onTouchMove);
-        document.addEventListener('touchend', onTouchEnd);
-    });
+        document.addEventListener('mousemove', onDrag);
+        document.addEventListener('touchmove', function(e) {
+            onDrag(e.touches[0]);
+        });
+        document.addEventListener('mouseup', stopDrag);
+        document.addEventListener('touchend', stopDrag);
+    }
     
-    // Движение мышью
-    function onMouseMove(e) {
-        if (!isDragging) return;
+    function onDrag(e) {
+        if (!isDragging || captchaCompleted) return;
         
         currentX = e.clientX - startX;
         
-        // Ограничиваем движение
-        if (currentX < 4) currentX = 4;
+        // Clamp position
+        if (currentX < 6) currentX = 6;
         if (currentX > maxDistance) currentX = maxDistance;
         
         sliderHandle.style.left = currentX + 'px';
         
-        // Если дошли до конца - завершаем
+        // If reached end
         if (currentX >= maxDistance - 2) {
             completeCaptcha();
         }
     }
     
-    // Движение пальцем
-    function onTouchMove(e) {
+    function stopDrag() {
         if (!isDragging) return;
         
-        currentX = e.touches[0].clientX - startX;
-        
-        // Ограничиваем движение
-        if (currentX < 4) currentX = 4;
-        if (currentX > maxDistance) currentX = maxDistance;
-        
-        sliderHandle.style.left = currentX + 'px';
-        
-        // Если дошли до конца - завершаем
-        if (currentX >= maxDistance - 2) {
-            completeCaptcha();
-        }
-    }
-    
-    // Отпускание мыши
-    function onMouseUp() {
-        if (!isDragging) return;
         isDragging = false;
-        
-        // Возвращаем в начало если не дошел
-        if (currentX < maxDistance - 10) {
-            sliderHandle.style.left = '4px';
-        }
-        
         sliderHandle.style.cursor = 'grab';
+        sliderHandle.classList.remove('dragging');
         document.body.style.userSelect = 'auto';
         
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
-    }
-    
-    // Отпускание пальца
-    function onTouchEnd() {
-        if (!isDragging) return;
-        isDragging = false;
-        
-        // Возвращаем в начало если не дошел
-        if (currentX < maxDistance - 10) {
-            sliderHandle.style.left = '4px';
+        // Reset if not completed
+        if (!captchaCompleted && currentX < maxDistance - 10) {
+            sliderHandle.style.left = '6px';
+            
+            // Add bounce effect
+            sliderHandle.style.transition = 'left 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+            setTimeout(() => {
+                sliderHandle.style.transition = '';
+            }, 500);
         }
         
-        sliderHandle.style.cursor = 'grab';
-        
-        document.removeEventListener('touchmove', onTouchMove);
-        document.removeEventListener('touchend', onTouchEnd);
+        document.removeEventListener('mousemove', onDrag);
+        document.removeEventListener('mouseup', stopDrag);
+        document.removeEventListener('touchmove', onDrag);
+        document.removeEventListener('touchend', stopDrag);
     }
     
-    // Завершение капчи
     function completeCaptcha() {
         if (captchaCompleted) return;
         
-        isDragging = false;
         captchaCompleted = true;
+        isDragging = false;
         
-        // Анимация успеха
-        sliderHandle.style.background = 'linear-gradient(135deg, #34C759, #30D158)';
-        sliderHandle.style.boxShadow = '0 4px 12px rgba(52, 199, 89, 0.6)';
-        sliderHandle.innerHTML = '<div class="slider-arrow">✓</div>';
-        sliderHandle.style.cursor = 'default';
+        // Snap to end
+        sliderHandle.style.left = maxDistance + 'px';
         
-        // Анимация текста
-        const sliderText = document.querySelector('.slider-text');
-        if (sliderText) {
-            sliderText.style.color = '#34C759';
-            sliderText.textContent = '✅ Проверка пройдена!';
-        }
-        
-        // Отправляем данные в бота
+        // Show success animation
         setTimeout(() => {
-            if (tg && tg.sendData) {
-                tg.sendData(JSON.stringify({
-                    action: 'captcha_completed',
-                    timestamp: new Date().toISOString(),
-                    status: 'success',
-                    message: 'Пользователь успешно прошел капчу'
-                }));
-            }
+            sliderHandle.style.opacity = '0';
+            sliderSuccess.classList.add('active');
             
-            // Показываем сообщение об успехе
-            showSuccessMessage();
+            // Change slider background
+            const sliderTrack = document.querySelector('.slider-track');
+            sliderTrack.style.background = 'linear-gradient(135deg, rgba(52, 199, 89, 0.9), rgba(120, 220, 120, 0.9))';
             
-            // Закрываем мини-приложение через 3 секунды
+            // Show success screen after delay
             setTimeout(() => {
-                tg.close();
-            }, 3000);
-        }, 800);
+                showScreen('successScreen');
+                
+                // Send data to bot
+                if (tg.sendData) {
+                    tg.sendData(JSON.stringify({
+                        action: 'captcha_completed',
+                        language: selectedLanguage,
+                        timestamp: new Date().toISOString()
+                    }));
+                }
+            }, 1500);
+        }, 300);
     }
 }
 
-// Показать сообщение об успехе
-function showSuccessMessage() {
-    // Создаем overlay
-    const overlay = document.createElement('div');
-    overlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.8);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-        animation: fadeIn 0.3s ease;
-    `;
-    
-    // Создаем сообщение
-    const message = document.createElement('div');
-    message.style.cssText = `
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 20px;
-        padding: 30px;
-        text-align: center;
-        max-width: 300px;
-        animation: slideIn 0.5s ease;
-    `;
-    
-    message.innerHTML = `
-        <div style="font-size: 48px; margin-bottom: 20px;">🎉</div>
-        <div style="font-size: 22px; font-weight: 700; color: white; margin-bottom: 10px; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
-            Проверка завершена!
-        </div>
-        <div style="font-size: 16px; color: rgba(255, 255, 255, 0.85); margin-bottom: 20px; line-height: 1.4;">
-            Ваши данные успешно проверены.<br>
-            Результаты отправлены боту.
-        </div>
-        <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7);">
-            Закрытие через 2 секунды...
-        </div>
-    `;
-    
-    // Добавляем стили анимации
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        @keyframes slideIn {
-            from { transform: translateY(30px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-    `;
-    
-    document.head.appendChild(style);
-    overlay.appendChild(message);
-    document.body.appendChild(overlay);
+// Close App
+function closeApp() {
+    tg.close();
 }
 
-// Вспомогательные функции
-function triggerFileInput() {
-    document.getElementById('fileInput').click();
+// Modal Functions
+function showInstruction() {
+    document.getElementById('instructionModal').style.display = 'flex';
 }
 
-// Обработка кнопок футера
-document.addEventListener('click', function(e) {
-    if (e.target.classList.contains('footer-btn')) {
-        const text = e.target.textContent.trim();
-        if (text === 'Инструкция') {
-            showScreen('instructionScreen');
-        } else if (text === 'FAQ') {
-            showScreen('faqScreen');
-        }
+function showFAQ() {
+    alert('FAQ будет добавлен в следующем обновлении');
+}
+
+function closeModal() {
+    document.getElementById('instructionModal').style.display = 'none';
+}
+
+// Back button functionality
+document.getElementById('backBtn').addEventListener('click', function() {
+    if (currentScreen === 'mainScreen') {
+        showScreen('languageScreen');
+    } else if (currentScreen === 'captchaScreen') {
+        showScreen('mainScreen');
     }
 });
