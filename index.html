@@ -6,170 +6,244 @@
     <title>RefoundCheck</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <!-- Telegram App -->
-    <div class="telegram-app">
+    <!-- Particles Background -->
+    <div class="particles" id="particles"></div>
+    
+    <!-- Blur Effects -->
+    <div class="blur-edge top"></div>
+    <div class="blur-edge bottom"></div>
+    <div class="blur-edge left"></div>
+    <div class="blur-edge right"></div>
+    
+    <!-- Main Container -->
+    <div class="container">
         <!-- Status Bar -->
         <div class="status-bar">
-            <div class="status-left">
-                <span class="time">17:05</span>
-            </div>
-            <div class="status-right">
-                <div class="status-icons">
-                    <span>📶</span>
-                    <span>📶</span>
-                    <span>🔋</span>
-                </div>
+            <div class="time">17:05</div>
+            <div class="status-icons">
+                <i class="fas fa-signal"></i>
+                <i class="fas fa-wifi"></i>
+                <i class="fas fa-battery-full"></i>
             </div>
         </div>
 
-        <!-- Main Container -->
-        <div class="app-container">
-            <!-- Header -->
-            <header class="app-header">
-                <div class="header-content">
-                    <div class="header-left"></div>
-                    <h1 class="header-title">SWIFTGRAM</h1>
-                    <button class="close-btn" onclick="window.Telegram.WebApp.close()">
-                        Закрыть
-                    </button>
-                </div>
-            </header>
+        <!-- Header -->
+        <div class="header">
+            <div class="header-top">
+                <button class="back-btn" id="backBtn" style="display: none;">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <h1 class="app-title">SWIFTGRAM</h1>
+                <button class="close-btn" onclick="window.Telegram.WebApp.close()">
+                    Закрыть
+                </button>
+            </div>
+            
+            <div class="app-header">
+                <h2 class="app-name">RefoundCheck</h2>
+                <span class="mini-app-badge">мини-приложение</span>
+            </div>
+        </div>
 
-            <!-- Content -->
-            <main class="app-content">
-                <!-- App Label -->
-                <div class="app-label">
-                    <div class="app-name">
-                        <span class="app-name-text">RefoundCheck</span>
-                        <span class="mini-app-badge">мини-приложение</span>
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- SCREEN 1: Language Selection -->
+            <div class="screen active" id="languageScreen">
+                <div class="nicegram-header">
+                    <div class="nicegram-logo">
+                        <i class="fab fa-telegram"></i>
+                    </div>
+                    <h3 class="nicegram-title">Nicegram</h3>
+                    <p class="language-subtitle">Select Language</p>
+                </div>
+
+                <div class="language-list">
+                    <div class="language-item active" onclick="selectLanguage('ru')">
+                        <div class="language-flag">🇷🇺</div>
+                        <div class="language-info">
+                            <div class="language-code">RU</div>
+                            <div class="language-name">Русский</div>
+                        </div>
+                        <div class="language-check">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="language-glow"></div>
+                    </div>
+                    
+                    <div class="language-item" onclick="selectLanguage('en')">
+                        <div class="language-flag">🇺🇸</div>
+                        <div class="language-info">
+                            <div class="language-code">US</div>
+                            <div class="language-name">English</div>
+                        </div>
+                        <div class="language-check">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="language-glow"></div>
+                    </div>
+                    
+                    <div class="language-item" onclick="selectLanguage('ua')">
+                        <div class="language-flag">🇺🇦</div>
+                        <div class="language-info">
+                            <div class="language-code">UA</div>
+                            <div class="language-name">Українська</div>
+                        </div>
+                        <div class="language-check">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="language-glow"></div>
                     </div>
                 </div>
+                
+                <div class="action-btn" onclick="continueToMain()">
+                    Продолжить
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </div>
 
-                <!-- SCREEN 1: Main Screen (сразу показываем) -->
-                <div class="screen active" id="mainScreen">
-                    <div class="content-block">
-                        <!-- Nicegram Header -->
-                        <div class="nicegram-header">
-                            <div class="nicegram-title">Nicegram</div>
-                            <div class="nicegram-greeting">Привет, клейм</div>
-                        </div>
-
-                        <!-- Info Text -->
-                        <div class="info-text">
-                            Защищенная среда для проверки данных.<br>
-                            Загрузите файл экспорта.
-                        </div>
-
-                        <!-- Stats -->
-                        <div class="stats-container">
-                            <div class="stats-box">
-                                <div class="stats-number" id="todayChecks">3 004</div>
-                                <div class="stats-label">Пройдено успешных проверок за сегодня</div>
-                            </div>
-                        </div>
-
-                        <!-- Upload Area -->
-                        <div class="upload-container">
-                            <div class="upload-box" id="uploadBox">
-                                <div class="upload-icon">📁</div>
-                                <div class="upload-text">Загрузить файл</div>
-                                <div class="upload-hint">Перетащите файл или нажмите для выбора</div>
-                            </div>
-                            <input type="file" id="fileInput" accept=".json,.html,.txt" style="display: none;">
-                        </div>
-
-                        <!-- Security Note -->
-                        <div class="security-note">
-                            NiceGram ® все данные защищены
-                        </div>
-                    </div>
+            <!-- SCREEN 2: Main Screen -->
+            <div class="screen" id="mainScreen">
+                <div class="nicegram-header">
+                    <h3 class="nicegram-title">Nicegram</h3>
+                    <p class="greeting">Привет, клейм</p>
                 </div>
 
-                <!-- SCREEN 2: Captcha Screen -->
-                <div class="screen" id="captchaScreen">
-                    <div class="content-block">
-                        <!-- Nicegram Header -->
-                        <div class="nicegram-header">
-                            <div class="nicegram-title">Nicegram</div>
-                            <div class="nicegram-greeting">Привет, клейм</div>
-                        </div>
+                <p class="description">Защищенная среда для проверки данных.</p>
+                <p class="description">Загрузите файл экспорта.</p>
 
-                        <!-- Captcha -->
-                        <div class="captcha-container">
-                            <div class="captcha-title">Подтвердите, что вы человек</div>
-                            
-                            <div class="captcha-slider" id="captchaSlider">
-                                <div class="slider-track">
-                                    <div class="slider-handle" id="sliderHandle">
-                                        <div class="slider-arrow">▶</div>
-                                    </div>
-                                    <div class="slider-text">>> Проведите вправо >></div>
+                <div class="stats-card">
+                    <div class="stats-content">
+                        <div class="stats-number" id="todayChecks">3 004</div>
+                        <div class="stats-label">Пройдено успешных проверок за сегодня</div>
+                    </div>
+                    <div class="stats-glow"></div>
+                </div>
+
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-content">
+                        <div class="upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <div class="upload-text">Загрузить файл</div>
+                        <div class="upload-subtext">Перетащите файл или нажмите для выбора</div>
+                    </div>
+                    <div class="upload-glow"></div>
+                    <input type="file" id="fileInput" accept=".json,.html,.txt" style="display: none;">
+                </div>
+
+                <div class="security-note">
+                    <i class="fas fa-shield-alt"></i>
+                    NiceGram ® все данные защищены
+                </div>
+            </div>
+
+            <!-- SCREEN 3: CAPTCHA -->
+            <div class="screen" id="captchaScreen">
+                <div class="nicegram-header">
+                    <h3 class="nicegram-title">Nicegram</h3>
+                    <p class="greeting">Привет, клейм</p>
+                </div>
+
+                <div class="captcha-container">
+                    <h4 class="captcha-title">Подтвердите, что вы человек</h4>
+                    
+                    <div class="captcha-slider" id="captchaSlider">
+                        <div class="slider-track">
+                            <div class="slider-handle" id="sliderHandle">
+                                <div class="handle-content">
+                                    <i class="fas fa-arrow-right"></i>
+                                    <div class="handle-ring"></div>
+                                    <div class="handle-glow"></div>
                                 </div>
                             </div>
-
-                            <div class="captcha-note">
-                                <span class="captcha-icon">🔊</span>
-                                Защита от автоматизации
-                            </div>
+                            <div class="slider-text">>> Проведите вправо >></div>
+                            <div class="slider-glow"></div>
+                        </div>
+                        <div class="slider-success" id="sliderSuccess">
+                            <i class="fas fa-check"></i>
+                            Успешно!
                         </div>
                     </div>
-                </div>
 
-                <!-- SCREEN 3: Instruction -->
-                <div class="screen" id="instructionScreen">
-                    <div class="content-block">
-                        <div class="screen-title">Инструкция</div>
-                        
-                        <div class="instruction-steps">
-                            <div class="step">1. Скачайте приложение Nicegram с официального сайта...</div>
-                            <div class="step">2. Откройте Nicegram и войдите в свой аккаунт.</div>
-                            <div class="step">3. Зайдите в настройки и выберите пункт «Nicegram».</div>
-                            <div class="step">4. Экспортируйте файл...</div>
-                            <div class="step">5. Откройте главное меню бота и нажмите на кнопку "Проверка на рефунд".</div>
-                            <div class="step">6. Отправьте файл боту.</div>
-                            <div class="step">7. Ожидайте результатов проверки.</div>
-                        </div>
-
-                        <button class="understand-btn" onclick="showScreen('mainScreen')">
-                            Понятно
-                        </button>
+                    <div class="captcha-note">
+                        <i class="fas fa-robot"></i>
+                        Защита от автоматизации
                     </div>
                 </div>
+                
+                <div class="captcha-hint">
+                    <i class="fas fa-info-circle"></i>
+                    Проведите ползунок до конца для подтверждения
+                </div>
+            </div>
 
-                <!-- SCREEN 4: FAQ -->
-                <div class="screen" id="faqScreen">
-                    <div class="content-block">
-                        <div class="screen-title">FAQ</div>
-                        
-                        <div class="faq-content">
-                            <div class="faq-item">
-                                <div class="faq-question">Что такое RefoundCheck?</div>
-                                <div class="faq-answer">Это мини-приложение для проверки подарков и рефандов в Telegram.</div>
-                            </div>
-                            <div class="faq-item">
-                                <div class="faq-question">Какой файл нужен для проверки?</div>
-                                <div class="faq-answer">Файл экспорта данных из Nicegram в формате JSON или HTML.</div>
-                            </div>
-                            <div class="faq-item">
-                                <div class="faq-question">Безопасно ли это?</div>
-                                <div class="faq-answer">Да, все данные обрабатываются локально и не отправляются на серверы.</div>
-                            </div>
+            <!-- SCREEN 4: Success -->
+            <div class="screen" id="successScreen">
+                <div class="success-container">
+                    <div class="success-icon">
+                        <div class="success-circle">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="success-ring"></div>
+                        <div class="success-glow"></div>
+                    </div>
+                    
+                    <h3 class="success-title">Проверка завершена!</h3>
+                    
+                    <div class="success-message">
+                        Ваш файл успешно проверен.<br>
+                        Результаты отправлены боту.
+                    </div>
+                    
+                    <div class="success-stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="totalChecks">3,408</div>
+                            <div class="stat-label">Всего проверок сегодня</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="yourCheck">✓</div>
+                            <div class="stat-label">Ваша проверка</div>
                         </div>
                     </div>
+                    
+                    <div class="action-btn" onclick="closeApp()">
+                        Закрыть
+                        <i class="fas fa-times"></i>
+                    </div>
                 </div>
-            </main>
+            </div>
+        </main>
 
-            <!-- Footer -->
-            <footer class="app-footer">
-                <button class="footer-btn" onclick="showScreen('instructionScreen')">
-                    Инструкция
-                </button>
-                <button class="footer-btn" onclick="showScreen('faqScreen')">
-                    FAQ
-                </button>
-            </footer>
+        <!-- Footer -->
+        <footer class="footer">
+            <button class="footer-btn" onclick="showInstruction()">
+                <i class="fas fa-book"></i>
+                Инструкция
+            </button>
+            <button class="footer-btn" onclick="showFAQ()">
+                <i class="fas fa-question-circle"></i>
+                FAQ
+            </button>
+        </footer>
+
+        <!-- Modals -->
+        <div class="modal" id="instructionModal">
+            <div class="modal-content">
+                <h3>Инструкция</h3>
+                <ol>
+                    <li>Скачайте приложение Nicegram с официального сайта...</li>
+                    <li>Откройте Nicegram и войдите в свой аккаунт.</li>
+                    <li>Зайдите в настройки и выберите пункт «Nicegram».</li>
+                    <li>Экспортируйте файл...</li>
+                    <li>Откройте главное меню бота и нажмите на кнопку "Проверка на рефунд".</li>
+                    <li>Отправьте файл боту.</li>
+                    <li>Ожидайте результатов проверки.</li>
+                </ol>
+                <button class="modal-btn" onclick="closeModal()">Понятно</button>
+            </div>
         </div>
     </div>
 
