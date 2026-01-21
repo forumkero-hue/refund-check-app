@@ -1,297 +1,272 @@
-// Telegram Web App
+// Telegram
 const tg = window.Telegram.WebApp;
 tg.expand();
-tg.setHeaderColor('#667eea');
-tg.setBackgroundColor('#667eea');
 
-// Variables
+// Переменные
 let currentScreen = 'languageScreen';
-let selectedLanguage = 'ru';
-let checkCount = 3004;
 
-// Initialize
-document.addEventListener('DOMContentLoaded', function() {
+// Запускаем
+window.onload = function() {
+    showScreen('languageScreen');
     initLanguageSelection();
     initFileUpload();
-    initCaptcha();
-    updateStats();
-});
+};
 
-// Language Selection - auto switch on click
-function initLanguageSelection() {
-    const languageItems = document.querySelectorAll('.language-item');
+// Показать экран
+function showScreen(screenId) {
+    // Скрываем все
+    document.querySelectorAll('.screen').forEach(screen => {
+        screen.style.display = 'none';
+    });
     
-    languageItems.forEach(item => {
-        item.addEventListener('click', function() {
-            // Remove active from all
-            languageItems.forEach(i => i.classList.remove('active'));
+    // Показываем нужный
+    const screen = document.getElementById(screenId);
+    if (screen) {
+        screen.style.display = 'block';
+        currentScreen = screenId;
+    }
+}
+
+// Выбор языка (простой)
+function initLanguageSelection() {
+    const langOptions = document.querySelectorAll('.lang-option');
+    
+    langOptions.forEach(option => {
+        option.onclick = function() {
+            // Убираем активный класс
+            langOptions.forEach(opt => opt.classList.remove('active'));
             
-            // Add active to clicked
+            // Добавляем активный
             this.classList.add('active');
             
-            // Get language code
-            const langCode = this.querySelector('.language-code').textContent.toLowerCase();
-            selectedLanguage = langCode;
-            
-            // Auto switch to main screen after 0.5 seconds
+            // Через 0.5 секунды переходим на главный экран
             setTimeout(() => {
                 showScreen('mainScreen');
             }, 500);
-        });
+        };
     });
 }
 
-// Show Screen
-function showScreen(screenId) {
-    document.querySelectorAll('.screen').forEach(screen => {
-        screen.classList.remove('active');
-    });
-    
-    const targetScreen = document.getElementById(screenId);
-    if (targetScreen) {
-        targetScreen.classList.add('active');
-        currentScreen = screenId;
-        window.scrollTo(0, 0);
-    }
-}
-
-// Update Stats
-function updateStats() {
-    checkCount += Math.floor(Math.random() * 5) + 1;
-    const statsElement = document.getElementById('todayChecks');
-    if (statsElement) {
-        statsElement.textContent = checkCount.toLocaleString('ru-RU');
-    }
-}
-
-// File Upload
+// Загрузка файла
 function initFileUpload() {
-    const uploadArea = document.getElementById('uploadArea');
+    const uploadBox = document.getElementById('uploadBox');
     const fileInput = document.getElementById('fileInput');
     
-    if (!uploadArea || !fileInput) return;
+    if (!uploadBox || !fileInput) return;
     
-    // Click upload
-    uploadArea.addEventListener('click', () => fileInput.click());
+    // Клик по области загрузки
+    uploadBox.onclick = function() {
+        fileInput.click();
+    };
     
-    // File selection
-    fileInput.addEventListener('change', function(e) {
+    // Выбор файла
+    fileInput.onchange = function(e) {
         const file = e.target.files[0];
-        if (file) processFile(file);
-    });
-    
-    // Drag & drop
-    uploadArea.addEventListener('dragover', function(e) {
-        e.preventDefault();
-        this.style.background = 'rgba(255, 255, 255, 0.15)';
-    });
-    
-    uploadArea.addEventListener('dragleave', function() {
-        this.style.background = '';
-    });
-    
-    uploadArea.addEventListener('drop', function(e) {
-        e.preventDefault();
-        this.style.background = '';
-        
-        if (e.dataTransfer.files.length) {
-            const file = e.dataTransfer.files[0];
-            processFile(file);
-        }
-    });
-}
-
-// Process File
-function processFile(file) {
-    const validExts = ['.json', '.html', '.txt'];
-    const fileExt = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
-    
-    if (!validExts.includes(fileExt)) {
-        alert('❌ Пожалуйста, загрузите файл экспорта (.json, .html или .txt)');
-        return;
-    }
-    
-    // Show loading
-    const uploadArea = document.getElementById('uploadArea');
-    const originalHTML = uploadArea.innerHTML;
-    
-    uploadArea.innerHTML = `
-        <div class="upload-icon">
-            <i class="fas fa-spinner fa-spin"></i>
-        </div>
-        <div class="upload-text">Обработка...</div>
-        <div class="upload-subtext">${file.name}</div>
-    `;
-    uploadArea.style.cursor = 'default';
-    
-    // Simulate processing and show captcha
-    setTimeout(() => {
-        showScreen('captchaScreen');
-        
-        // Restore upload area
-        setTimeout(() => {
-            uploadArea.innerHTML = originalHTML;
-            uploadArea.style.cursor = 'pointer';
-            initFileUpload(); // Re-init events
-        }, 500);
-    }, 1500);
-}
-
-// CAPTCHA - БЫСТРАЯ И НЕ ЛАГАЮЩАЯ
-function initCaptcha() {
-    const sliderHandle = document.getElementById('sliderHandle');
-    const captchaSlider = document.getElementById('captchaSlider');
-    
-    if (!sliderHandle || !captchaSlider) return;
-    
-    let isDragging = false;
-    let startX = 0;
-    let sliderWidth = captchaSlider.offsetWidth;
-    let handleWidth = sliderHandle.offsetWidth;
-    let maxDistance = sliderWidth - handleWidth - 12;
-    
-    // Update sizes on resize
-    function updateSizes() {
-        sliderWidth = captchaSlider.offsetWidth;
-        handleWidth = sliderHandle.offsetWidth;
-        maxDistance = sliderWidth - handleWidth - 12;
-    }
-    
-    window.addEventListener('resize', updateSizes);
-    
-    // Mouse events
-    sliderHandle.addEventListener('mousedown', function(e) {
-        isDragging = true;
-        startX = e.clientX - sliderHandle.offsetLeft;
-        sliderHandle.style.cursor = 'grabbing';
-        e.preventDefault();
-    });
-    
-    // Touch events
-    sliderHandle.addEventListener('touchstart', function(e) {
-        isDragging = true;
-        startX = e.touches[0].clientX - sliderHandle.offsetLeft;
-        sliderHandle.style.cursor = 'grabbing';
-        e.preventDefault();
-    }, { passive: false });
-    
-    // Mouse move
-    document.addEventListener('mousemove', function(e) {
-        if (!isDragging) return;
-        
-        let newX = e.clientX - startX;
-        
-        // Clamp position
-        if (newX < 6) newX = 6;
-        if (newX > maxDistance) newX = maxDistance;
-        
-        // Update position (NO TRANSITION - это ключ к отсутствию лагов)
-        sliderHandle.style.left = newX + 'px';
-        
-        // Check if completed
-        if (newX >= maxDistance - 2) {
-            completeCaptcha();
-        }
-    });
-    
-    // Touch move
-    document.addEventListener('touchmove', function(e) {
-        if (!isDragging) return;
-        
-        let newX = e.touches[0].clientX - startX;
-        
-        // Clamp position
-        if (newX < 6) newX = 6;
-        if (newX > maxDistance) newX = maxDistance;
-        
-        // Update position (NO TRANSITION)
-        sliderHandle.style.left = newX + 'px';
-        
-        // Check if completed
-        if (newX >= maxDistance - 2) {
-            completeCaptcha();
-        }
-    }, { passive: false });
-    
-    // Mouse up
-    document.addEventListener('mouseup', function() {
-        if (!isDragging) return;
-        isDragging = false;
-        sliderHandle.style.cursor = 'grab';
-        
-        // Reset if not completed
-        if (parseInt(sliderHandle.style.left) < maxDistance - 10) {
-            sliderHandle.style.left = '6px';
-        }
-    });
-    
-    // Touch end
-    document.addEventListener('touchend', function() {
-        if (!isDragging) return;
-        isDragging = false;
-        sliderHandle.style.cursor = 'grab';
-        
-        // Reset if not completed
-        if (parseInt(sliderHandle.style.left) < maxDistance - 10) {
-            sliderHandle.style.left = '6px';
-        }
-    });
-    
-    // Complete captcha
-    function completeCaptcha() {
-        if (!isDragging) return;
-        isDragging = false;
-        
-        // Snap to end
-        sliderHandle.style.left = maxDistance + 'px';
-        sliderHandle.style.background = 'linear-gradient(135deg, #34C759, #30D158)';
-        sliderHandle.innerHTML = '<i class="fas fa-check"></i>';
-        sliderHandle.style.cursor = 'default';
-        
-        // Update text
-        const sliderText = document.querySelector('.slider-text');
-        if (sliderText) {
-            sliderText.textContent = '✅ Успешно!';
-            sliderText.style.color = '#34C759';
-        }
-        
-        // Show success screen
-        setTimeout(() => {
-            showScreen('successScreen');
-            
-            // Send data to bot
-            if (tg.sendData) {
-                tg.sendData(JSON.stringify({
-                    action: 'captcha_completed',
-                    language: selectedLanguage,
-                    timestamp: new Date().toISOString()
-                }));
+        if (file) {
+            // Проверяем расширение
+            const ext = file.name.toLowerCase();
+            if (ext.endsWith('.json') || ext.endsWith('.html') || ext.endsWith('.txt')) {
+                startFileCheck(file);
+            } else {
+                alert('❌ Пожалуйста, загрузите файл .json, .html или .txt');
             }
-        }, 800);
+        }
+    };
+}
+
+// Начать проверку файла
+function startFileCheck(file) {
+    // Показываем экран проверки
+    showScreen('checkScreen');
+    
+    // Запускаем анимацию прогресса
+    simulateProgress(file);
+}
+
+// Симуляция прогресса проверки
+function simulateProgress(file) {
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    
+    let progress = 0;
+    const interval = setInterval(() => {
+        progress += 2;
+        progressFill.style.width = progress + '%';
+        progressText.textContent = progress + '%';
+        
+        if (progress >= 100) {
+            clearInterval(interval);
+            
+            // После завершения - показываем успех с хлопушками
+            setTimeout(() => {
+                showSuccessWithCelebration();
+            }, 500);
+        }
+    }, 30);
+}
+
+// Показать успех с хлопушками
+function showSuccessWithCelebration() {
+    showScreen('successScreen');
+    
+    // Запускаем анимации
+    startCelebration();
+    
+    // Проигрываем звук (тихо)
+    try {
+        const audio = document.getElementById('successSound');
+        audio.volume = 0.3; // Тихий звук
+        audio.play();
+    } catch (e) {
+        console.log('Звук не воспроизводится');
+    }
+    
+    // Отправляем данные в бота
+    if (tg.sendData) {
+        setTimeout(() => {
+            tg.sendData(JSON.stringify({
+                action: 'file_checked',
+                status: 'success',
+                timestamp: new Date().toISOString(),
+                message: 'Файл успешно проверен!'
+            }));
+        }, 1000);
     }
 }
 
-// Close App
+// Запуск празднования 🎉
+function startCelebration() {
+    // Запускаем конфетти
+    launchConfetti();
+    
+    // Запускаем фейерверки
+    startFireworks();
+    
+    // Добавляем класс анимации к иконке
+    const successIcon = document.getElementById('successIcon');
+    successIcon.classList.add('celebrating');
+}
+
+// Запуск конфетти
+function launchConfetti() {
+    const confettiElements = document.querySelectorAll('.confetti');
+    
+    confettiElements.forEach((confetti, index) => {
+        confetti.style.opacity = '1';
+        
+        // Анимация падения
+        const duration = 1 + Math.random() * 2;
+        const delay = index * 0.3;
+        
+        confetti.style.animation = `
+            fall ${duration}s ease-in ${delay}s forwards,
+            spin ${duration * 0.5}s linear ${delay}s infinite
+        `;
+        
+        // Убираем после падения
+        setTimeout(() => {
+            confetti.style.opacity = '0';
+        }, (duration + delay) * 1000);
+    });
+    
+    // Добавляем CSS для анимации
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes fall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(400px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// Запуск фейерверков
+function startFireworks() {
+    const fireworksContainer = document.getElementById('fireworks');
+    
+    // Создаем несколько фейерверков
+    for (let i = 0; i < 15; i++) {
+        createFirework(fireworksContainer, i);
+    }
+}
+
+// Создать один фейерверк
+function createFirework(container, index) {
+    const firework = document.createElement('div');
+    firework.className = 'firework-particle';
+    
+    // Случайные параметры
+    const size = Math.random() * 6 + 3;
+    const colors = ['#ff6b6b', '#4ecdc4', '#ffe66d', '#34c759', '#a8d8ff'];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    const left = Math.random() * 100;
+    const delay = Math.random() * 1.5;
+    const duration = 0.8 + Math.random() * 0.4;
+    
+    // Стили
+    firework.style.cssText = `
+        position: absolute;
+        width: ${size}px;
+        height: ${size}px;
+        background: ${color};
+        border-radius: 50%;
+        left: ${left}%;
+        top: 80%;
+        opacity: 0;
+        box-shadow: 0 0 10px ${color};
+    `;
+    
+    container.appendChild(firework);
+    
+    // Запускаем анимацию
+    setTimeout(() => {
+        firework.style.opacity = '1';
+        firework.style.transition = `
+            top ${duration}s cubic-bezier(0.1, 0.8, 0.3, 1),
+            opacity ${duration}s ease
+        `;
+        firework.style.top = (Math.random() * 60 + 10) + '%';
+        
+        // Убираем после взрыва
+        setTimeout(() => {
+            firework.style.opacity = '0';
+            setTimeout(() => {
+                if (firework.parentNode) {
+                    firework.parentNode.removeChild(firework);
+                }
+            }, 1000);
+        }, duration * 1000);
+    }, delay * 1000);
+}
+
+// Закрыть приложение
 function closeApp() {
     tg.close();
 }
 
-// Modal Functions
+// Показать инструкцию
 function showInstruction() {
-    document.getElementById('instructionModal').style.display = 'flex';
+    alert('📖 Инструкция:\n\n1. Скачайте Nicegram\n2. Экспортируйте данные\n3. Загрузите файл здесь\n4. Получите результат!');
 }
 
+// Показать FAQ
 function showFAQ() {
-    alert('FAQ будет добавлен в следующем обновлении');
+    alert('❓ Частые вопросы:\n\nQ: Какой файл нужен?\nA: Экспорт из Nicegram (.json)\n\nQ: Безопасно ли это?\nA: Да, данные не отправляются на серверы');
 }
 
-function closeModal() {
-    document.getElementById('instructionModal').style.display = 'none';
+// Выбор языка
+function selectLanguage(lang) {
+    console.log('Выбран язык:', lang);
+    // Можно добавить смену текстов
 }
-
-// Back button for modal (optional)
-document.addEventListener('click', function(e) {
-    if (e.target.classList.contains('modal')) {
-        closeModal();
-    }
-});
