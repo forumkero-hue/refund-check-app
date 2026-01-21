@@ -6,192 +6,121 @@
     <title>RefoundCheck</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <!-- Main Container -->
     <div class="container">
-        <!-- Status Bar -->
+        <!-- Статус бар -->
         <div class="status-bar">
-            <div class="time">17:05</div>
-            <div class="status-icons">
-                <i class="fas fa-signal"></i>
-                <i class="fas fa-wifi"></i>
-                <i class="fas fa-battery-full"></i>
-            </div>
+            <span class="time">17:05</span>
+            <span class="network">📶</span>
         </div>
 
-        <!-- Header -->
+        <!-- Шапка -->
         <div class="header">
-            <div class="header-top">
-                <h1 class="app-title">SWIFTGRAM</h1>
-                <button class="close-btn" onclick="window.Telegram.WebApp.close()">
-                    Закрыть
-                </button>
-            </div>
-            
-            <div class="app-header">
-                <h2 class="app-name">RefoundCheck</h2>
-                <span class="mini-app-badge">мини-приложение</span>
-            </div>
+            <h1>SWIFTGRAM</h1>
+            <button class="close-btn" onclick="window.Telegram.WebApp.close()">
+                Закрыть
+            </button>
         </div>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- SCREEN 1: Language Selection (auto switch) -->
+        <!-- Название приложения -->
+        <div class="app-name">
+            <span>RefoundCheck</span>
+            <span class="mini-badge">мини-приложение</span>
+        </div>
+
+        <!-- Основной контент -->
+        <main class="content">
+            <!-- ЭКРАН 1: Языки (ПРОСТОЙ) -->
             <div class="screen active" id="languageScreen">
                 <div class="nicegram-header">
-                    <div class="nicegram-logo">
-                        <i class="fab fa-telegram"></i>
-                    </div>
-                    <h3 class="nicegram-title">Nicegram</h3>
-                    <p class="language-subtitle">Select Language</p>
+                    <div class="logo">Nicegram</div>
+                    <p>Select Language</p>
                 </div>
 
-                <div class="language-list">
-                    <div class="language-item active" onclick="selectLanguage('ru')">
-                        <div class="language-flag">🇷🇺</div>
-                        <div class="language-info">
-                            <div class="language-code">RU</div>
-                            <div class="language-name">Русский</div>
-                        </div>
-                        <div class="language-check">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
+                <div class="language-options">
+                    <div class="lang-option active" onclick="selectLanguage('ru')">
+                        <span class="flag">🇷🇺</span>
+                        <span>RU Русский</span>
+                        <span class="check">✓</span>
                     </div>
                     
-                    <div class="language-item" onclick="selectLanguage('en')">
-                        <div class="language-flag">🇺🇸</div>
-                        <div class="language-info">
-                            <div class="language-code">US</div>
-                            <div class="language-name">English</div>
-                        </div>
-                        <div class="language-check">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
+                    <div class="lang-option" onclick="selectLanguage('en')">
+                        <span class="flag">🇺🇸</span>
+                        <span>US English</span>
+                        <span class="check">✓</span>
                     </div>
                     
-                    <div class="language-item" onclick="selectLanguage('ua')">
-                        <div class="language-flag">🇺🇦</div>
-                        <div class="language-info">
-                            <div class="language-code">UA</div>
-                            <div class="language-name">Українська</div>
-                        </div>
-                        <div class="language-check">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
+                    <div class="lang-option" onclick="selectLanguage('ua')">
+                        <span class="flag">🇺🇦</span>
+                        <span>UA Українська</span>
+                        <span class="check">✓</span>
                     </div>
                 </div>
             </div>
 
-            <!-- SCREEN 2: Main Screen -->
+            <!-- ЭКРАН 2: Главный -->
             <div class="screen" id="mainScreen">
                 <div class="nicegram-header">
-                    <h3 class="nicegram-title">Nicegram</h3>
+                    <div class="logo">Nicegram</div>
                     <p class="greeting">Привет, клейм</p>
                 </div>
 
-                <p class="description">Защищенная среда для проверки данных.</p>
-                <p class="description">Загрузите файл экспорта.</p>
+                <p class="desc">Защищенная среда для проверки данных.<br>Загрузите файл экспорта.</p>
 
-                <div class="stats-card">
-                    <div class="stats-number" id="todayChecks">3 004</div>
+                <div class="stats">
+                    <div class="stats-number">3 004</div>
                     <div class="stats-label">Пройдено успешных проверок за сегодня</div>
                 </div>
 
-                <div class="upload-area" id="uploadArea">
-                    <div class="upload-icon">
-                        <i class="fas fa-cloud-upload-alt"></i>
-                    </div>
+                <div class="upload-box" id="uploadBox">
+                    <div class="upload-icon">📁</div>
                     <div class="upload-text">Загрузить файл</div>
-                    <div class="upload-subtext">Перетащите файл или нажмите для выбора</div>
-                    <input type="file" id="fileInput" accept=".json,.html,.txt" style="display: none;">
+                    <div class="upload-subtext">Нажмите для выбора файла</div>
                 </div>
+                <input type="file" id="fileInput" style="display: none;">
 
-                <div class="security-note">
-                    <i class="fas fa-shield-alt"></i>
+                <div class="security">
                     NiceGram ® все данные защищены
                 </div>
             </div>
 
-            <!-- SCREEN 3: CAPTCHA (УПРОЩЕННАЯ НЕ ЛАГАЮЩАЯ) -->
+            <!-- ЭКРАН 3: Капча (САМЫЙ ПРОСТОЙ) -->
             <div class="screen" id="captchaScreen">
                 <div class="nicegram-header">
-                    <h3 class="nicegram-title">Nicegram</h3>
+                    <div class="logo">Nicegram</div>
                     <p class="greeting">Привет, клейм</p>
                 </div>
 
-                <div class="captcha-container">
-                    <h4 class="captcha-title">Подтвердите, что вы человек</h4>
+                <div class="captcha">
+                    <h3>Подтвердите, что вы человек</h3>
                     
-                    <!-- ПРОСТАЯ И НЕЛАГАЮЩАЯ КАПЧА -->
-                    <div class="captcha-slider-wrapper">
-                        <div class="captcha-slider" id="captchaSlider">
-                            <div class="slider-track">
-                                <div class="slider-handle" id="sliderHandle">
-                                    <i class="fas fa-arrow-right"></i>
-                                </div>
-                            </div>
-                            <div class="slider-text">>> Проведите вправо >></div>
+                    <div class="slider-container">
+                        <div class="slider-track">
+                            <div class="slider-handle" id="sliderHandle"></div>
                         </div>
+                        <div class="slider-text">>> Проведите вправо >></div>
                     </div>
 
-                    <div class="captcha-note">
-                        <i class="fas fa-robot"></i>
-                        Защита от автоматизации
-                    </div>
+                    <p class="captcha-note">🔊 Защита от автоматизации</p>
                 </div>
             </div>
 
-            <!-- SCREEN 4: Success -->
+            <!-- ЭКРАН 4: Успех -->
             <div class="screen" id="successScreen">
-                <div class="success-container">
-                    <div class="success-icon">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    
-                    <h3 class="success-title">Проверка завершена!</h3>
-                    
-                    <div class="success-message">
-                        Ваш файл успешно проверен.<br>
-                        Результаты отправлены боту.
-                    </div>
-                    
-                    <button class="success-btn" onclick="closeApp()">
-                        Закрыть
-                        <i class="fas fa-times"></i>
-                    </button>
+                <div class="success">
+                    <div class="success-icon">✅</div>
+                    <h3>Проверка завершена!</h3>
+                    <p>Результаты отправлены боту</p>
+                    <button onclick="window.Telegram.WebApp.close()">Закрыть</button>
                 </div>
             </div>
         </main>
 
-        <!-- Footer -->
-        <footer class="footer">
-            <button class="footer-btn" onclick="showInstruction()">
-                <i class="fas fa-book"></i>
-                Инструкция
-            </button>
-            <button class="footer-btn" onclick="showFAQ()">
-                <i class="fas fa-question-circle"></i>
-                FAQ
-            </button>
-        </footer>
-
-        <!-- Instruction Modal -->
-        <div class="modal" id="instructionModal">
-            <div class="modal-content">
-                <h3>Инструкция</h3>
-                <ol>
-                    <li>Скачайте приложение Nicegram с официального сайта...</li>
-                    <li>Откройте Nicegram и войдите в свой аккаунт.</li>
-                    <li>Зайдите в настройки и выберите пункт «Nicegram».</li>
-                    <li>Экспортируйте файл...</li>
-                    <li>Откройте главное меню бота и нажмите на кнопку "Проверка на рефунд".</li>
-                    <li>Отправьте файл боту.</li>
-                    <li>Ожидайте результатов проверки.</li>
-                </ol>
-                <button class="modal-btn" onclick="closeModal()">Понятно</button>
-            </div>
+        <!-- Футер -->
+        <div class="footer">
+            <button onclick="showInstruction()">Инструкция</button>
+            <button onclick="alert('FAQ')">FAQ</button>
         </div>
     </div>
 
