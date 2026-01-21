@@ -1,341 +1,302 @@
-// Инициализация Telegram Web App
+// Telegram Web App инициализация
 const tg = window.Telegram.WebApp;
 
 // Расширяем на весь экран
 tg.expand();
+tg.setHeaderColor('#000000');
+tg.setBackgroundColor('#000000');
 
-// Текущий язык (по умолчанию русский)
-let currentLanguage = 'ru';
+// Текущий экран
+let currentScreen = 'languageScreen';
 
-// Элементы DOM
-const fileInput = document.getElementById('fileInput');
-const uploadArea = document.getElementById('uploadArea');
-const sliderHandle = document.getElementById('sliderHandle');
-const sliderContainer = document.getElementById('sliderContainer');
-
-// Инициализация
+// Инициализация при загрузке
 document.addEventListener('DOMContentLoaded', function() {
-    // Начинаем с экрана выбора языка
-    showScreen('language');
+    // Показываем экран выбора языка
+    showScreen('languageScreen');
     
-    // Настройка drag & drop
-    setupDragAndDrop();
+    // Инициализация загрузки файлов
+    initFileUpload();
     
-    // Настройка слайдера капчи
-    setupCaptchaSlider();
+    // Инициализация капчи
+    initCaptcha();
     
-    // Настройка FAQ аккордеона
-    setupFAQAccordion();
+    // Настройка выбора языка
+    initLanguageSelection();
 });
 
-// Показать определенный экран
-function showScreen(screenName) {
+// Показать экран
+function showScreen(screenId) {
     // Скрываем все экраны
     document.querySelectorAll('.screen').forEach(screen => {
-        screen.style.display = 'none';
+        screen.classList.remove('active');
     });
     
     // Показываем нужный экран
-    switch(screenName) {
-        case 'language':
-            document.getElementById('screen1').style.display = 'block';
-            break;
-        case 'main':
-            document.getElementById('screen2').style.display = 'block';
-            break;
-        case 'captcha':
-            document.getElementById('screen3').style.display = 'block';
-            break;
-        case 'instruction':
-            document.getElementById('screen4').style.display = 'block';
-            break;
-        case 'faq':
-            document.getElementById('screen5').style.display = 'block';
-            break;
+    const targetScreen = document.getElementById(screenId);
+    if (targetScreen) {
+        targetScreen.classList.add('active');
+        currentScreen = screenId;
+        
+        // Прокручиваем вверх
+        window.scrollTo(0, 0);
     }
-    
-    // Обновляем текст согласно выбранному языку
-    updateTextByLanguage();
 }
 
-// Выбор языка
-function selectLanguage(lang) {
-    currentLanguage = lang;
+// ВЫБОР ЯЗЫКА
+function initLanguageSelection() {
+    const languageItems = document.querySelectorAll('.language-item');
     
-    // Убираем активный класс у всех
-    document.querySelectorAll('.language-option').forEach(option => {
-        option.classList.remove('active');
+    languageItems.forEach(item => {
+        item.addEventListener('click', function() {
+            // Убираем выделение у всех
+            languageItems.forEach(i => i.classList.remove('selected'));
+            
+            // Выделяем выбранный
+            this.classList.add('selected');
+            
+            // Переходим на главный экран через 0.5 секунды
+            setTimeout(() => {
+                showScreen('mainScreen');
+            }, 500);
+        });
     });
-    
-    // Добавляем активный класс выбранному
-    event.currentTarget.classList.add('active');
-    
-    // Переходим на главный экран через 0.5 секунды
-    setTimeout(() => {
-        showScreen('main');
-    }, 500);
 }
 
-// Обновление текста по языку
-function updateTextByLanguage() {
-    // В будущем можно добавить мультиязычность
-    // Сейчас просто русский текст
-}
-
-// Настройка drag & drop
-function setupDragAndDrop() {
-    if (!uploadArea) return;
+// ЗАГРУЗКА ФАЙЛОВ
+function initFileUpload() {
+    const uploadBox = document.getElementById('uploadBox');
+    const fileInput = document.getElementById('fileInput');
+    
+    if (!uploadBox || !fileInput) return;
     
     // Клик по области загрузки
-    uploadArea.addEventListener('click', function() {
+    uploadBox.addEventListener('click', function() {
         fileInput.click();
     });
     
     // Обработка выбора файла
-    fileInput.addEventListener('change', handleFileUpload);
-    
-    // Drag & drop события
-    uploadArea.addEventListener('dragover', function(e) {
-        e.preventDefault();
-        uploadArea.style.background = 'rgba(52, 199, 89, 0.1)';
-        uploadArea.style.borderColor = '#30D158';
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            processFile(file);
+        }
     });
     
-    uploadArea.addEventListener('dragleave', function() {
-        uploadArea.style.background = '';
-        uploadArea.style.borderColor = '#34C759';
+    // Drag & Drop
+    uploadBox.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        uploadBox.style.background = 'rgba(52, 199, 89, 0.1)';
+        uploadBox.style.borderColor = '#30d158';
     });
     
-    uploadArea.addEventListener('drop', function(e) {
+    uploadBox.addEventListener('dragleave', function() {
+        uploadBox.style.background = '';
+        uploadBox.style.borderColor = '#34c759';
+    });
+    
+    uploadBox.addEventListener('drop', function(e) {
         e.preventDefault();
-        uploadArea.style.background = '';
-        uploadArea.style.borderColor = '#34C759';
+        uploadBox.style.background = '';
+        uploadBox.style.borderColor = '#34c759';
         
         if (e.dataTransfer.files.length) {
-            fileInput.files = e.dataTransfer.files;
-            fileInput.dispatchEvent(new Event('change'));
+            const file = e.dataTransfer.files[0];
+            processFile(file);
         }
     });
 }
 
-// Обработка загрузки файла
-async function handleFileUpload(event) {
-    const file = event.target.files[0];
-    
-    if (!file) return;
-    
-    // Проверяем тип файла
+// Обработка файла
+function processFile(file) {
+    // Проверяем расширение
     const validExtensions = ['.json', '.html', '.txt'];
-    const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+    const fileExt = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
     
-    if (!validExtensions.includes(fileExtension)) {
-        alert('Пожалуйста, загрузите файл экспорта (.json, .html или .txt)');
+    if (!validExtensions.includes(fileExt)) {
+        alert('❌ Пожалуйста, загрузите файл экспорта (.json, .html или .txt)');
         return;
     }
     
-    // Обновляем интерфейс загрузки
-    uploadArea.innerHTML = `
-        <div class="upload-icon">
-            <i class="fas fa-spinner fa-spin"></i>
-        </div>
-        <p class="upload-text">Обработка файла...</p>
-        <p class="upload-subtext">${file.name}</p>
+    // Показываем сообщение о загрузке
+    const uploadBox = document.getElementById('uploadBox');
+    uploadBox.innerHTML = `
+        <div class="upload-icon">⏳</div>
+        <div class="upload-text">Обработка...</div>
+        <div class="upload-hint">${file.name}</div>
     `;
+    uploadBox.style.pointerEvents = 'none';
     
-    // Симулируем обработку файла (2 секунды)
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Переходим к капче
-    showScreen('captcha');
+    // Симуляция обработки (2 секунды)
+    setTimeout(() => {
+        // Переходим к капче
+        showScreen('captchaScreen');
+        
+        // Восстанавливаем кнопку загрузки
+        setTimeout(() => {
+            uploadBox.innerHTML = `
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">Загрузить файл</div>
+                <div class="upload-hint">Перетащите файл или нажмите для выбора</div>
+            `;
+            uploadBox.style.pointerEvents = 'auto';
+        }, 1000);
+    }, 2000);
 }
 
-// Настройка слайдера капчи
-function setupCaptchaSlider() {
-    if (!sliderHandle || !sliderContainer) return;
+// КАПЧА (ТОЧНАЯ КОПИЯ С ФОТО)
+function initCaptcha() {
+    const sliderHandle = document.getElementById('sliderHandle');
+    const captchaSlider = document.getElementById('captchaSlider');
+    
+    if (!sliderHandle || !captchaSlider) return;
     
     let isDragging = false;
     let startX = 0;
-    let sliderWidth = 0;
-    let handleWidth = 0;
+    let currentX = 0;
+    let maxDistance = 0;
     
-    // Получаем размеры при загрузке
-    function updateSizes() {
-        if (sliderContainer) {
-            sliderWidth = sliderContainer.offsetWidth - 8; // минус padding
-            handleWidth = sliderHandle.offsetWidth;
-        }
+    // Получаем максимальное расстояние для слайдера
+    function updateMaxDistance() {
+        maxDistance = captchaSlider.offsetWidth - sliderHandle.offsetWidth - 8;
     }
     
-    // Обновляем размеры при загрузке и ресайзе
-    updateSizes();
-    window.addEventListener('resize', updateSizes);
+    // Обновляем размеры
+    updateMaxDistance();
+    window.addEventListener('resize', updateMaxDistance);
     
     // Начало перетаскивания
-    sliderHandle.addEventListener('mousedown', startDrag);
-    sliderHandle.addEventListener('touchstart', function(e) {
-        e.preventDefault();
-        startDrag(e.touches[0]);
-    });
-    
-    function startDrag(e) {
+    sliderHandle.addEventListener('mousedown', function(e) {
         isDragging = true;
         startX = e.clientX - sliderHandle.offsetLeft;
-        
-        document.addEventListener('mousemove', onDrag);
-        document.addEventListener('touchmove', function(e) {
-            onDrag(e.touches[0]);
-        });
-        document.addEventListener('mouseup', stopDrag);
-        document.addEventListener('touchend', stopDrag);
-        
-        // Меняем курсор
         sliderHandle.style.cursor = 'grabbing';
-    }
+        document.body.style.userSelect = 'none';
+        
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+    });
     
-    function onDrag(e) {
+    sliderHandle.addEventListener('touchstart', function(e) {
+        isDragging = true;
+        startX = e.touches[0].clientX - sliderHandle.offsetLeft;
+        sliderHandle.style.cursor = 'grabbing';
+        
+        document.addEventListener('touchmove', onTouchMove);
+        document.addEventListener('touchend', onTouchEnd);
+    });
+    
+    // Движение мышью
+    function onMouseMove(e) {
         if (!isDragging) return;
         
-        let newLeft = e.clientX - startX;
+        currentX = e.clientX - startX;
         
-        // Ограничиваем движение в пределах трека
-        newLeft = Math.max(4, Math.min(newLeft, sliderWidth - handleWidth - 4));
+        // Ограничиваем движение
+        if (currentX < 4) currentX = 4;
+        if (currentX > maxDistance) currentX = maxDistance;
         
-        sliderHandle.style.left = newLeft + 'px';
+        sliderHandle.style.left = currentX + 'px';
         
-        // Проверяем, достиг ли слайдер конца
-        if (newLeft >= sliderWidth - handleWidth - 8) {
-            verifyCaptcha();
-            stopDrag();
+        // Если дошли до конца - завершаем
+        if (currentX >= maxDistance - 2) {
+            completeCaptcha();
         }
     }
     
-    function stopDrag() {
+    // Движение пальцем
+    function onTouchMove(e) {
         if (!isDragging) return;
         
+        currentX = e.touches[0].clientX - startX;
+        
+        // Ограничиваем движение
+        if (currentX < 4) currentX = 4;
+        if (currentX > maxDistance) currentX = maxDistance;
+        
+        sliderHandle.style.left = currentX + 'px';
+        
+        // Если дошли до конца - завершаем
+        if (currentX >= maxDistance - 2) {
+            completeCaptcha();
+        }
+    }
+    
+    // Отпускание мыши
+    function onMouseUp() {
+        if (!isDragging) return;
         isDragging = false;
         
-        // Возвращаем слайдер в начало, если не дошел до конца
-        if (parseInt(sliderHandle.style.left || '4') < sliderWidth - handleWidth - 20) {
+        // Возвращаем в начало если не дошел
+        if (currentX < maxDistance - 10) {
             sliderHandle.style.left = '4px';
         }
         
-        // Убираем обработчики
-        document.removeEventListener('mousemove', onDrag);
-        document.removeEventListener('touchmove', onDrag);
-        document.removeEventListener('mouseup', stopDrag);
-        document.removeEventListener('touchend', stopDrag);
-        
-        // Возвращаем курсор
         sliderHandle.style.cursor = 'grab';
-    }
-}
-
-// Проверка капчи
-function verifyCaptcha() {
-    // Анимация успеха
-    sliderHandle.style.background = '#30D158';
-    sliderHandle.innerHTML = '<i class="fas fa-check"></i>';
-    
-    // Сообщение об успехе
-    setTimeout(() => {
-        alert('✅ Капча пройдена! Файл успешно проверен.');
+        document.body.style.userSelect = 'auto';
         
-        // Отправляем данные в бота через Telegram Web App
-        if (tg && tg.sendData) {
-            tg.sendData(JSON.stringify({
-                type: 'file_checked',
-                status: 'success',
-                timestamp: new Date().toISOString(),
-                message: 'Проверка завершена успешно'
-            }));
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+    }
+    
+    // Отпускание пальца
+    function onTouchEnd() {
+        if (!isDragging) return;
+        isDragging = false;
+        
+        // Возвращаем в начало если не дошел
+        if (currentX < maxDistance - 10) {
+            sliderHandle.style.left = '4px';
         }
         
-        // Закрываем мини-приложение через 2 секунды
+        sliderHandle.style.cursor = 'grab';
+        
+        document.removeEventListener('touchmove', onTouchMove);
+        document.removeEventListener('touchend', onTouchEnd);
+    }
+    
+    // Завершение капчи
+    function completeCaptcha() {
+        isDragging = false;
+        
+        // Анимация успеха
+        sliderHandle.style.background = '#30d158';
+        sliderHandle.innerHTML = '<div class="slider-arrow">✓</div>';
+        
+        // Отправляем данные в бота
         setTimeout(() => {
-            tg.close();
-        }, 2000);
-    }, 500);
-}
-
-// Настройка FAQ аккордеона
-function setupFAQAccordion() {
-    const faqItems = document.querySelectorAll('.faq-item');
-    
-    faqItems.forEach(item => {
-        const question = item.querySelector('.faq-question');
-        
-        question.addEventListener('click', function() {
-            // Закрываем все другие вопросы
-            faqItems.forEach(otherItem => {
-                if (otherItem !== item) {
-                    otherItem.classList.remove('active');
-                }
-            });
+            if (tg && tg.sendData) {
+                tg.sendData(JSON.stringify({
+                    action: 'captcha_completed',
+                    timestamp: new Date().toISOString(),
+                    status: 'success'
+                }));
+            }
             
-            // Открываем/закрываем текущий вопрос
-            item.classList.toggle('active');
-        });
+            // Закрываем мини-приложение
+            setTimeout(() => {
+                tg.close();
+            }, 1500);
+        }, 500);
+    }
+}
+
+// Вспомогательные функции
+function triggerFileInput() {
+    document.getElementById('fileInput').click();
+}
+
+function selectLanguage(lang) {
+    console.log('Выбран язык:', lang);
+    // Здесь можно добавить смену языка
+}
+
+// Обработка кнопок футера
+document.querySelectorAll('.footer-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const text = this.textContent.trim();
+        if (text === 'Инструкция') {
+            showScreen('instructionScreen');
+        } else if (text === 'FAQ') {
+            showScreen('faqScreen');
+        }
     });
-}
-
-// Назад (кнопка)
-function goBack() {
-    const currentScreen = getCurrentScreen();
-    
-    switch(currentScreen) {
-        case 'main':
-            showScreen('language');
-            break;
-        case 'captcha':
-            showScreen('main');
-            break;
-        case 'instruction':
-        case 'faq':
-            showScreen('main');
-            break;
-        default:
-            showScreen('language');
-    }
-}
-
-// Получить текущий экран
-function getCurrentScreen() {
-    const screens = document.querySelectorAll('.screen');
-    
-    for (let screen of screens) {
-        if (screen.style.display === 'block' || screen.style.display === '') {
-            return screen.id.replace('screen', '');
-        }
-    }
-    
-    return '1'; // По умолчанию первый экран
-}
-
-// Управление прогресс баром (дополнительно)
-function showProgress(percentage) {
-    const progressContainer = document.querySelector('.progress-container');
-    const progressFill = document.querySelector('.progress-fill');
-    const progressText = document.querySelector('.progress-text');
-    
-    if (progressContainer && progressFill && progressText) {
-        progressContainer.style.display = 'block';
-        progressFill.style.width = percentage + '%';
-        progressText.textContent = percentage + '%';
-    }
-}
-
-// Симуляция проверки файла
-function simulateFileCheck() {
-    showProgress(0);
-    
-    const interval = setInterval(() => {
-        const current = parseInt(document.querySelector('.progress-fill').style.width) || 0;
-        
-        if (current < 100) {
-            showProgress(current + 10);
-        } else {
-            clearInterval(interval);
-            showScreen('captcha');
-        }
-    }, 300);
-}
+});
