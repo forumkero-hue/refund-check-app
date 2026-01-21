@@ -8,25 +8,25 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    <!-- Контейнер приложения -->
+    <!-- Telegram App -->
     <div class="telegram-app">
-        <!-- Верхняя строка статуса (скопировано из Telegram) -->
+        <!-- Status Bar -->
         <div class="status-bar">
-            <div class="status-bar-left">
+            <div class="status-left">
                 <span class="time">17:05</span>
             </div>
-            <div class="status-bar-right">
+            <div class="status-right">
                 <div class="status-icons">
-                    <span class="signal">📶</span>
-                    <span class="wifi">📶</span>
-                    <span class="battery">🔋 100%</span>
+                    <span>📶</span>
+                    <span>📶</span>
+                    <span>🔋</span>
                 </div>
             </div>
         </div>
 
-        <!-- Основной контейнер -->
+        <!-- Main Container -->
         <div class="app-container">
-            <!-- Шапка с названием и кнопкой закрыть -->
+            <!-- Header -->
             <header class="app-header">
                 <div class="header-content">
                     <div class="header-left"></div>
@@ -37,9 +37,9 @@
                 </div>
             </header>
 
-            <!-- Контент приложения -->
+            <!-- Content -->
             <main class="app-content">
-                <!-- Блок с названием мини-приложения -->
+                <!-- App Label -->
                 <div class="app-label">
                     <div class="app-name">
                         <span class="app-name-text">RefoundCheck</span>
@@ -47,56 +47,32 @@
                     </div>
                 </div>
 
-                <!-- ЭКРАН 1: Выбор языка (как на первом скриншоте) -->
-                <div class="screen active" id="languageScreen">
+                <!-- SCREEN 1: Main Screen (сразу показываем) -->
+                <div class="screen active" id="mainScreen">
                     <div class="content-block">
-                        <div class="nicegram-header">
-                            <div class="nicegram-title">Nicegram</div>
-                            <div class="nicegram-subtitle">Select Language</div>
-                        </div>
-
-                        <div class="language-list">
-                            <div class="language-item selected" onclick="selectLanguage('ru')">
-                                <span class="language-flag">RU</span>
-                                <span class="language-name">Русский</span>
-                                <span class="language-check">✓</span>
-                            </div>
-                            <div class="language-item" onclick="selectLanguage('en')">
-                                <span class="language-flag">US</span>
-                                <span class="language-name">English</span>
-                                <span class="language-check">✓</span>
-                            </div>
-                            <div class="language-item" onclick="selectLanguage('ua')">
-                                <span class="language-flag">UA</span>
-                                <span class="language-name">Українська</span>
-                                <span class="language-check">✓</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ЭКРАН 2: Главный экран (как на втором скриншоте) -->
-                <div class="screen" id="mainScreen">
-                    <div class="content-block">
+                        <!-- Nicegram Header -->
                         <div class="nicegram-header">
                             <div class="nicegram-title">Nicegram</div>
                             <div class="nicegram-greeting">Привет, клейм</div>
                         </div>
 
+                        <!-- Info Text -->
                         <div class="info-text">
                             Защищенная среда для проверки данных.<br>
                             Загрузите файл экспорта.
                         </div>
 
+                        <!-- Stats -->
                         <div class="stats-container">
                             <div class="stats-box">
-                                <div class="stats-number">3 004</div>
+                                <div class="stats-number" id="todayChecks">3 004</div>
                                 <div class="stats-label">Пройдено успешных проверок за сегодня</div>
                             </div>
                         </div>
 
+                        <!-- Upload Area -->
                         <div class="upload-container">
-                            <div class="upload-box" id="uploadBox" onclick="triggerFileInput()">
+                            <div class="upload-box" id="uploadBox">
                                 <div class="upload-icon">📁</div>
                                 <div class="upload-text">Загрузить файл</div>
                                 <div class="upload-hint">Перетащите файл или нажмите для выбора</div>
@@ -104,20 +80,23 @@
                             <input type="file" id="fileInput" accept=".json,.html,.txt" style="display: none;">
                         </div>
 
+                        <!-- Security Note -->
                         <div class="security-note">
                             NiceGram ® все данные защищены
                         </div>
                     </div>
                 </div>
 
-                <!-- ЭКРАН 3: Капча (как на третьем скриншоте) -->
+                <!-- SCREEN 2: Captcha Screen -->
                 <div class="screen" id="captchaScreen">
                     <div class="content-block">
+                        <!-- Nicegram Header -->
                         <div class="nicegram-header">
                             <div class="nicegram-title">Nicegram</div>
                             <div class="nicegram-greeting">Привет, клейм</div>
                         </div>
 
+                        <!-- Captcha -->
                         <div class="captcha-container">
                             <div class="captcha-title">Подтвердите, что вы человек</div>
                             
@@ -138,7 +117,7 @@
                     </div>
                 </div>
 
-                <!-- ЭКРАН 4: Инструкция -->
+                <!-- SCREEN 3: Instruction -->
                 <div class="screen" id="instructionScreen">
                     <div class="content-block">
                         <div class="screen-title">Инструкция</div>
@@ -159,7 +138,7 @@
                     </div>
                 </div>
 
-                <!-- ЭКРАН 5: FAQ -->
+                <!-- SCREEN 4: FAQ -->
                 <div class="screen" id="faqScreen">
                     <div class="content-block">
                         <div class="screen-title">FAQ</div>
@@ -182,7 +161,7 @@
                 </div>
             </main>
 
-            <!-- Нижняя панель с кнопками -->
+            <!-- Footer -->
             <footer class="app-footer">
                 <button class="footer-btn" onclick="showScreen('instructionScreen')">
                     Инструкция
