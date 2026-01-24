@@ -3,16 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RefoundCheck</title>
+    <title>NiceGram Analyzer</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <!-- NiceGram лого сверху слева -->
+    <div class="nicegram-corner">
+        <i class="fab fa-telegram"></i>
+        <span>NiceGram</span>
+    </div>
+
+    <!-- Контейнер -->
     <div class="container">
-        <!-- Фейерверки -->
-        <div class="fireworks" id="fireworks"></div>
-        
         <!-- Статус бар -->
         <div class="status-bar">
             <span class="time">17:05</span>
@@ -63,11 +67,19 @@
                 </div>
             </div>
 
-            <!-- ЭКРАН 2: Главный -->
+            <!-- ЭКРАН 2: Главный с анализом ника -->
             <div class="screen" id="mainScreen">
+                <!-- Приветствие с ником -->
+                <div class="user-greeting" id="userGreeting">
+                    <div class="greeting-icon">👋</div>
+                    <div class="greeting-text">
+                        <div class="hello">Привет,</div>
+                        <div class="username" id="username">@username</div>
+                    </div>
+                </div>
+
                 <div class="nicegram-header">
                     <div class="logo">Nicegram</div>
-                    <p class="greeting">Привет, клейм</p>
                 </div>
 
                 <p class="desc">Защищенная среда для проверки данных.<br>Загрузите файл экспорта.</p>
@@ -82,24 +94,60 @@
                     <div class="upload-text">Загрузить файл</div>
                     <div class="upload-subtext">Нажмите для выбора файла</div>
                 </div>
-                <input type="file" id="fileInput" style="display: none;">
+                <input type="file" id="fileInput" accept=".json,.html,.txt" style="display: none;">
 
                 <div class="security">
+                    <i class="fas fa-shield-alt"></i>
                     NiceGram ® все данные защищены
+                </div>
+
+                <!-- Результаты анализа ника -->
+                <div class="nick-analysis" id="nickAnalysis" style="display: none;">
+                    <h3><i class="fas fa-user-check"></i> Анализ профиля</h3>
+                    <div class="analysis-results">
+                        <div class="result-item">
+                            <span class="result-icon">👤</span>
+                            <div class="result-info">
+                                <div class="result-label">Никнейм</div>
+                                <div class="result-value" id="analyzedNick">@username</div>
+                            </div>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-icon">📅</span>
+                            <div class="result-info">
+                                <div class="result-label">Аккаунт создан</div>
+                                <div class="result-value" id="accountAge">Не определено</div>
+                            </div>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-icon">🎁</span>
+                            <div class="result-info">
+                                <div class="result-label">Подарки получено</div>
+                                <div class="result-value" id="totalGifts">0</div>
+                            </div>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-icon">⭐</span>
+                            <div class="result-info">
+                                <div class="result-label">Всего звезд</div>
+                                <div class="result-value" id="totalStars">0</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- ЭКРАН 3: ПРОВЕРКА (с анимацией) -->
+            <!-- ЭКРАН 3: Проверка -->
             <div class="screen" id="checkScreen">
                 <div class="check-container">
-                    <div class="check-animation" id="checkAnimation">
+                    <div class="check-animation">
                         <div class="check-circle">
                             <i class="fas fa-spinner fa-spin"></i>
                         </div>
                     </div>
                     
-                    <h3>Проверяем файл...</h3>
-                    <p class="check-text">Анализируем данные</p>
+                    <h3>Анализируем файл...</h3>
+                    <p class="check-text" id="checkText">Определяем данные пользователя</p>
                     
                     <div class="progress-bar">
                         <div class="progress-fill" id="progressFill"></div>
@@ -108,63 +156,61 @@
                 </div>
             </div>
 
-            <!-- ЭКРАН 4: УСПЕХ С ХЛОПУШКАМИ 🎉 -->
+            <!-- ЭКРАН 4: Успех -->
             <div class="screen" id="successScreen">
                 <div class="success-container">
-                    <!-- Конфетти -->
-                    <div class="confetti"></div>
-                    <div class="confetti"></div>
-                    <div class="confetti"></div>
-                    
-                    <div class="success-icon" id="successIcon">
+                    <div class="success-icon">
                         <i class="fas fa-check-circle"></i>
-                        <div class="success-glow"></div>
                     </div>
                     
-                    <h3 class="success-title">Проверка завершена! 🎊</h3>
+                    <h3 class="success-title">Анализ завершен! ✅</h3>
                     
                     <div class="success-message">
-                        <p><strong>✅ Успешно проверено!</strong></p>
-                        <p>Ваш файл полностью валиден</p>
-                        <p>Все подарки подтверждены</p>
+                        <p>Профиль успешно проанализирован</p>
+                        <p>Все данные проверены и валидны</p>
                     </div>
                     
-                    <div class="results">
-                        <div class="result-item">
-                            <span class="result-icon">🎁</span>
-                            <div>
-                                <div class="result-value">3 подарка</div>
-                                <div class="result-label">найдено в файле</div>
+                    <!-- Детали анализа -->
+                    <div class="analysis-details">
+                        <h4><i class="fas fa-chart-bar"></i> Результаты анализа</h4>
+                        
+                        <div class="detail-item">
+                            <span class="detail-icon">👤</span>
+                            <div class="detail-info">
+                                <div class="detail-label">Пользователь</div>
+                                <div class="detail-value" id="finalUsername">@username</div>
                             </div>
                         </div>
                         
-                        <div class="result-item">
-                            <span class="result-icon">⭐</span>
-                            <div>
-                                <div class="result-value">150 звёзд</div>
-                                <div class="result-label">общая сумма</div>
+                        <div class="detail-item">
+                            <span class="detail-icon">🎁</span>
+                            <div class="detail-info">
+                                <div class="detail-label">Всего подарков</div>
+                                <div class="detail-value" id="finalGifts">0</div>
                             </div>
                         </div>
                         
-                        <div class="result-item">
-                            <span class="result-icon">✅</span>
-                            <div>
-                                <div class="result-value">100%</div>
-                                <div class="result-label">валидность</div>
+                        <div class="detail-item">
+                            <span class="detail-icon">⭐</span>
+                            <div class="detail-info">
+                                <div class="detail-label">Сумма звезд</div>
+                                <div class="detail-value" id="finalStars">0 ⭐</div>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-icon">✅</span>
+                            <div class="detail-info">
+                                <div class="detail-label">Статус проверки</div>
+                                <div class="detail-value success">Валидный аккаунт</div>
                             </div>
                         </div>
                     </div>
                     
                     <button class="success-btn" onclick="closeApp()">
-                        <i class="fas fa-paper-plane"></i>
-                        Отправить результат боту
+                        <i class="fas fa-check"></i>
+                        Готово
                     </button>
-                    
-                    <div class="celebrate-text">
-                        <i class="fas fa-fireworks"></i>
-                        Молодец! Отличная проверка!
-                        <i class="fas fa-fireworks"></i>
-                    </div>
                 </div>
             </div>
         </main>
@@ -181,9 +227,6 @@
             </button>
         </div>
     </div>
-
-    <!-- Аудио для хлопушек (тихо) -->
-    <audio id="successSound" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3" preload="auto"></audio>
 
     <script src="app.js"></script>
 </body>
