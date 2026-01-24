@@ -116,8 +116,8 @@
                     <div class="progress-bar">
                         <div class="progress-fill" id="progressFill"></div>
                     </div>
-                    <!-- ИСПРАВЛЕНИЕ 2: Добавил процент загрузки -->
-                    <div class="progress-percentage">100%</div>
+                    <!-- ИСПРАВЛЕНИЕ: Большой процент загрузки -->
+                    <div class="progress-percentage" id="progressPercentage">0%</div>
                     <div class="progress-text" id="progressText"></div>
                 </div>
             </div>
@@ -140,7 +140,7 @@
                     <div class="analysis-details">
                         <h4><i class="fas fa-chart-bar"></i> Результаты анализа</h4>
                         
-                        <!-- ИСПРАВЛЕНИЕ 1: Убрал плашку "Пользователь" -->
+                        <!-- Плашка пользователя скрыта -->
                         <div class="detail-item" style="display: none;">
                             <span class="detail-icon">👤</span>
                             <div class="detail-info">
@@ -221,9 +221,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Показываем экран языков
     showScreen('languageScreen');
-    
-    // ИСПРАВЛЕНИЕ 2: Устанавливаем прогресс 100% сразу
-    document.getElementById('progressFill').style.width = '100%';
 });
 
 // Обновление статистики
@@ -310,47 +307,60 @@ function startFileAnalysis(file) {
     // Показываем экран проверки
     showScreen('checkScreen');
     
-    // Запускаем анализ
-    analyzeFile(file);
+    // Запускаем анимацию загрузки
+    startLoadingAnimation();
 }
 
-// Анализ файла и извлечение ника
-async function analyzeFile(file) {
-    try {
-        // ИСПРАВЛЕНИЕ 2: Устанавливаем сразу 100% прогресс
-        document.getElementById('progressFill').style.width = '100%';
-        document.getElementById('checkText').textContent = 'Формируем отчет...';
+// Функция анимации загрузки с процентами
+function startLoadingAnimation() {
+    const progressFill = document.getElementById('progressFill');
+    const progressPercentage = document.getElementById('progressPercentage');
+    const checkText = document.getElementById('checkText');
+    
+    let progress = 0;
+    const totalTime = 3000; // 3 секунды на всю анимацию
+    const intervalTime = 30; // Обновляем каждые 30ms
+    const steps = totalTime / intervalTime;
+    const increment = 100 / steps;
+    
+    const loadingInterval = setInterval(() => {
+        progress += increment;
+        if (progress > 100) progress = 100;
         
-        // Используем данные из изображения
-        userData = {
-            username: '@file_user_722',
-            accountCreated: '15.03.2023',
-            totalGifts: 7,
-            totalStars: 308
-        };
-        detectedUsername = '@file_user_722';
+        // Обновляем прогресс-бар
+        progressFill.style.width = progress + '%';
         
-        // Через 2 секунды показываем отчет
-        setTimeout(() => {
-            showAnalysisResults();
-        }, 2000);
+        // Обновляем процент
+        progressPercentage.textContent = Math.floor(progress) + '%';
         
-    } catch (error) {
-        console.error('Ошибка анализа:', error);
-        // Используем данные из изображения при ошибке
-        userData = {
-            username: '@file_user_722',
-            accountCreated: '15.03.2023',
-            totalGifts: 7,
-            totalStars: 308
-        };
-        detectedUsername = '@file_user_722';
+        // Меняем текст на разных этапах
+        if (progress < 40) {
+            checkText.textContent = 'Читаем файл...';
+        } else if (progress < 70) {
+            checkText.textContent = 'Анализируем данные...';
+        } else {
+            checkText.textContent = 'Формируем отчет...';
+        }
         
-        // Показываем результаты
-        setTimeout(() => {
-            showAnalysisResults();
-        }, 1000);
-    }
+        // Когда достигли 100%
+        if (progress >= 100) {
+            clearInterval(loadingInterval);
+            
+            // Используем данные из изображения
+            userData = {
+                username: '@file_user_722',
+                accountCreated: '15.03.2023',
+                totalGifts: 7,
+                totalStars: 308
+            };
+            detectedUsername = '@file_user_722';
+            
+            // Через 1 секунду показываем отчет
+            setTimeout(() => {
+                showAnalysisResults();
+            }, 1000);
+        }
+    }, intervalTime);
 }
 
 // Показать результаты анализа
@@ -776,17 +786,21 @@ body {
     height: 100%;
     background: linear-gradient(90deg, #34C7FF, #00FFA3);
     width: 0%;
-    transition: width 0.3s ease;
+    transition: width 0.1s ease;
     border-radius: 4px;
 }
 
-/* ИСПРАВЛЕНИЕ 2: Стиль для процента загрузки */
+/* Процент загрузки */
 .progress-percentage {
-    font-size: 24px;
-    font-weight: 700;
+    font-size: 48px;
+    font-weight: 900;
     color: #34C7FF;
-    margin-bottom: 10px;
-    text-shadow: 0 2px 10px rgba(52, 199, 255, 0.3);
+    margin: 20px 0;
+    text-shadow: 0 4px 15px rgba(52, 199, 255, 0.4);
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .progress-text {
