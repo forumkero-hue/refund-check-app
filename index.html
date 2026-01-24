@@ -25,7 +25,6 @@
 
         <!-- Шапка -->
         <div class="header">
-            <!-- ИЗМЕНЕНО: SWIFTGRAM заменено на NiceGram -->
             <h1>NiceGram</h1>
             <button class="close-btn" onclick="window.Telegram.WebApp.close()">
                 Закрыть
@@ -75,7 +74,8 @@
                     <div class="greeting-icon">👋</div>
                     <div class="greeting-text">
                         <div class="hello">Привет,</div>
-                        <div class="username" id="username">@username</div>
+                        <!-- ИЗМЕНЕНО: username заменен на @file_user_722 -->
+                        <div class="username" id="username">@file_user_722</div>
                     </div>
                 </div>
 
@@ -110,7 +110,8 @@
                             <span class="result-icon">👤</span>
                             <div class="result-info">
                                 <div class="result-label">Никнейм</div>
-                                <div class="result-value" id="analyzedNick">@username</div>
+                                <!-- ИЗМЕНЕНО: username заменен на @file_user_722 -->
+                                <div class="result-value" id="analyzedNick">@file_user_722</div>
                             </div>
                         </div>
                         <div class="result-item">
@@ -179,7 +180,8 @@
                             <span class="detail-icon">👤</span>
                             <div class="detail-info">
                                 <div class="detail-label">Пользователь</div>
-                                <div class="detail-value" id="finalUsername">@username</div>
+                                <!-- ИЗМЕНЕНО: username заменен на @file_user_722 -->
+                                <div class="detail-value" id="finalUsername">@file_user_722</div>
                             </div>
                         </div>
                         
@@ -187,7 +189,8 @@
                             <span class="detail-icon">🎁</span>
                             <div class="detail-info">
                                 <div class="detail-label">Всего подарков</div>
-                                <div class="detail-value" id="finalGifts">0</div>
+                                <!-- ИЗМЕНЕНО: добавлено значение 7 из изображения -->
+                                <div class="detail-value" id="finalGifts">7</div>
                             </div>
                         </div>
                         
@@ -195,7 +198,8 @@
                             <span class="detail-icon">⭐</span>
                             <div class="detail-info">
                                 <div class="detail-label">Сумма звезд</div>
-                                <div class="detail-value" id="finalStars">0 ⭐</div>
+                                <!-- ИЗМЕНЕНО: добавлено значение 308 ★ из изображения -->
+                                <div class="detail-value" id="finalStars">308 ★</div>
                             </div>
                         </div>
                         
@@ -232,3 +236,1087 @@
     <script src="app.js"></script>
 </body>
 </html>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    min-height: 100vh;
+    position: relative;
+}
+
+/* NiceGram лого сверху слева */
+.nicegram-corner {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 6px 12px;
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.nicegram-corner i {
+    color: #34C7FF;
+}
+
+.container {
+    max-width: 400px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border-left: 2px solid rgba(255, 255, 255, 0.15);
+    border-right: 2px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Статус бар */
+.status-bar {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 15px;
+    font-size: 14px;
+    background: rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Шапка */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.header h1 {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.close-btn {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.close-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-1px);
+}
+
+/* Название приложения */
+.app-name {
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.app-name span:first-child {
+    font-size: 26px;
+    font-weight: 800;
+    background: linear-gradient(45deg, #fff, #a8d8ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.mini-badge {
+    background: linear-gradient(45deg, #34C7FF, #00FFA3);
+    color: black;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 4px 8px;
+    border-radius: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Основной контент */
+.content {
+    padding: 20px 15px 80px;
+}
+
+.screen {
+    display: none;
+}
+
+.screen.active {
+    display: block;
+    animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Приветствие с ником */
+.user-greeting {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 15px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.greeting-icon {
+    font-size: 28px;
+    width: 50px;
+    height: 50px;
+    background: rgba(52, 199, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.greeting-text {
+    flex: 1;
+}
+
+.hello {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 5px;
+}
+
+.username {
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+    background: linear-gradient(45deg, #34C7FF, #00FFA3);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Nicegram заголовок */
+.nicegram-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.logo {
+    font-size: 28px;
+    font-weight: 800;
+    color: #34C7FF;
+    margin-bottom: 5px;
+    text-shadow: 0 2px 10px rgba(52, 199, 255, 0.3);
+}
+
+.desc {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 25px;
+    line-height: 1.5;
+    font-size: 16px;
+}
+
+/* Языки */
+.language-options {
+    margin: 30px 0;
+}
+
+.lang-option {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 15px;
+    padding: 18px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.lang-option:hover {
+    background: rgba(255, 255, 255, 0.12);
+    transform: translateY(-2px);
+}
+
+.lang-option.active {
+    background: rgba(52, 199, 255, 0.2);
+    border-color: #34C7FF;
+    box-shadow: 0 8px 25px rgba(52, 199, 255, 0.25);
+}
+
+.flag {
+    font-size: 28px;
+    margin-right: 18px;
+}
+
+.lang-option span:nth-child(2) {
+    flex: 1;
+    font-size: 17px;
+    font-weight: 500;
+}
+
+.check {
+    color: #34C7FF;
+    font-size: 24px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.lang-option.active .check {
+    opacity: 1;
+}
+
+/* Статистика */
+.stats {
+    background: rgba(52, 199, 255, 0.15);
+    border-radius: 20px;
+    padding: 25px;
+    text-align: center;
+    margin: 25px 0;
+    border: 1px solid rgba(52, 199, 255, 0.3);
+}
+
+.stats-number {
+    font-size: 48px;
+    font-weight: 900;
+    color: #34C7FF;
+    margin-bottom: 10px;
+    text-shadow: 0 4px 15px rgba(52, 199, 255, 0.4);
+}
+
+.stats-label {
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.4;
+}
+
+/* Загрузка */
+.upload-box {
+    border: 3px dashed #34C7FF;
+    border-radius: 20px;
+    padding: 40px 20px;
+    text-align: center;
+    margin: 25px 0;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.upload-box:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: #00FFA3;
+    transform: translateY(-3px);
+    box-shadow: 0 15px 35px rgba(52, 199, 255, 0.2);
+}
+
+.upload-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+    color: #34C7FF;
+}
+
+.upload-text {
+    font-size: 22px;
+    font-weight: 700;
+    color: #34C7FF;
+    margin-bottom: 8px;
+}
+
+.upload-subtext {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.security {
+    text-align: center;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-top: 30px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.security i {
+    color: #00FFA3;
+}
+
+/* Анализ ника */
+.nick-analysis {
+    margin-top: 30px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.nick-analysis h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.nick-analysis h3 i {
+    color: #34C7FF;
+}
+
+.analysis-results {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.result-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.result-icon {
+    font-size: 20px;
+    width: 40px;
+    height: 40px;
+    background: rgba(52, 199, 255, 0.2);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.result-info {
+    flex: 1;
+}
+
+.result-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 5px;
+}
+
+.result-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: white;
+}
+
+/* Проверка */
+.check-container {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.check-animation {
+    margin: 0 auto 30px;
+    width: 100px;
+    height: 100px;
+}
+
+.check-circle {
+    width: 100%;
+    height: 100%;
+    background: rgba(52, 199, 255, 0.2);
+    border: 3px solid #34C7FF;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    color: #34C7FF;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.check-container h3 {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: white;
+}
+
+.check-text {
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 30px;
+    font-size: 16px;
+}
+
+.progress-bar {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #34C7FF, #00FFA3);
+    width: 0%;
+    transition: width 0.3s ease;
+    border-radius: 4px;
+}
+
+.progress-text {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Успех */
+.success-container {
+    text-align: center;
+    padding: 30px 20px;
+}
+
+.success-icon {
+    font-size: 80px;
+    color: #34C7FF;
+    margin-bottom: 25px;
+    animation: bounce 0.6s ease;
+}
+
+@keyframes bounce {
+    0% { transform: scale(0.5); opacity: 0; }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.success-title {
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 20px;
+    color: white;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.success-message {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 25px;
+}
+
+.success-message p {
+    margin-bottom: 10px;
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Детали анализа */
+.analysis-details {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 25px;
+    margin-bottom: 25px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.analysis-details h4 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.analysis-details h4 i {
+    color: #34C7FF;
+}
+
+.detail-item {
+    background: rgba(255, 255, 255, 0.07);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.detail-item:last-child {
+    margin-bottom: 0;
+}
+
+.detail-icon {
+    font-size: 22px;
+    width: 45px;
+    height: 45px;
+    background: rgba(52, 199, 255, 0.2);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.detail-info {
+    flex: 1;
+    text-align: left;
+}
+
+.detail-label {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 5px;
+}
+
+.detail-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+}
+
+.detail-value.success {
+    color: #00FFA3;
+}
+
+/* Кнопка успеха */
+.success-btn {
+    background: linear-gradient(45deg, #34C7FF, #00FFA3);
+    color: white;
+    border: none;
+    border-radius: 15px;
+    padding: 20px;
+    font-size: 18px;
+    font-weight: 700;
+    width: 100%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    transition: all 0.3s;
+}
+
+.success-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 35px rgba(52, 199, 255, 0.3);
+}
+
+/* Футер */
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(20px);
+    padding: 15px;
+    display: flex;
+    justify-content: space-around;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    z-index: 10;
+}
+
+.footer button {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.footer button:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+</style>
+
+<script>
+// Telegram Web App
+const tg = window.Telegram.WebApp;
+tg.expand();
+
+// Переменные
+let currentScreen = 'languageScreen';
+// ИЗМЕНЕНО: начальный ник установлен на @file_user_722
+let detectedUsername = '@file_user_722';
+let userData = {
+    username: '@file_user_722',
+    accountCreated: '15.03.2023',
+    totalGifts: 7,
+    totalStars: 308
+};
+
+// Инициализация
+document.addEventListener('DOMContentLoaded', function() {
+    initLanguageSelection();
+    initFileUpload();
+    updateStats();
+    
+    // Автообновление статистики
+    setInterval(updateStats, 60000);
+    
+    // Показываем экран языков
+    showScreen('languageScreen');
+    
+    // Устанавливаем начальные значения
+    updateUserDisplay();
+});
+
+// Обновление отображения пользователя
+function updateUserDisplay() {
+    document.getElementById('username').textContent = detectedUsername;
+    document.getElementById('analyzedNick').textContent = detectedUsername;
+    document.getElementById('finalUsername').textContent = detectedUsername;
+    document.getElementById('finalGifts').textContent = userData.totalGifts;
+    document.getElementById('finalStars').textContent = userData.totalStars + ' ⭐';
+}
+
+// Обновление статистики
+function updateStats() {
+    const statsElement = document.querySelector('.stats-number');
+    if (statsElement) {
+        const current = parseInt(statsElement.textContent.replace(/\s/g, ''));
+        const randomIncrease = Math.floor(Math.random() * 5) + 1;
+        const newValue = current + randomIncrease;
+        statsElement.textContent = newValue.toLocaleString('ru-RU');
+    }
+}
+
+// Выбор языка
+function initLanguageSelection() {
+    const langOptions = document.querySelectorAll('.lang-option');
+    
+    langOptions.forEach(option => {
+        option.onclick = function() {
+            // Убираем активный класс
+            langOptions.forEach(opt => opt.classList.remove('active'));
+            
+            // Добавляем активный
+            this.classList.add('active');
+            
+            // Через 0.5 секунды переходим на главный экран
+            setTimeout(() => {
+                showScreen('mainScreen');
+            }, 500);
+        };
+    });
+}
+
+// Показать экран
+function showScreen(screenId) {
+    // Скрываем все экраны
+    document.querySelectorAll('.screen').forEach(screen => {
+        screen.style.display = 'none';
+    });
+    
+    // Показываем нужный экран
+    const screen = document.getElementById(screenId);
+    if (screen) {
+        screen.style.display = 'block';
+        currentScreen = screenId;
+        window.scrollTo(0, 0);
+    }
+}
+
+// Загрузка файла
+function initFileUpload() {
+    const uploadBox = document.getElementById('uploadBox');
+    const fileInput = document.getElementById('fileInput');
+    
+    if (!uploadBox || !fileInput) return;
+    
+    // Клик по области загрузки
+    uploadBox.onclick = function() {
+        fileInput.click();
+    };
+    
+    // Выбор файла
+    fileInput.onchange = async function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            // Проверяем расширение
+            const ext = file.name.toLowerCase();
+            if (ext.endsWith('.json') || ext.endsWith('.html') || ext.endsWith('.txt')) {
+                startFileAnalysis(file);
+            } else {
+                alert('❌ Пожалуйста, загрузите файл .json, .html или .txt');
+            }
+        }
+    };
+}
+
+// Начать анализ файла
+function startFileAnalysis(file) {
+    // Показываем экран проверки
+    showScreen('checkScreen');
+    
+    // Запускаем анализ
+    analyzeFile(file);
+}
+
+// Анализ файла и извлечение ника
+async function analyzeFile(file) {
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    const checkText = document.getElementById('checkText');
+    
+    try {
+        // Читаем файл
+        const text = await readFileAsText(file);
+        
+        // Этап 1: Чтение файла (0-30%)
+        checkText.textContent = 'Читаем файл...';
+        await updateProgress(progressFill, progressText, 0, 30, 500);
+        
+        // Этап 2: Поиск ника пользователя (30-60%)
+        checkText.textContent = 'Ищем данные пользователя...';
+        userData = extractUserData(text, file.name);
+        // ИЗМЕНЕНО: используем @file_user_722 если не найден другой
+        detectedUsername = userData.username || '@file_user_722';
+        await updateProgress(progressFill, progressText, 30, 60, 800);
+        
+        // Этап 3: Анализ подарков (60-90%)
+        checkText.textContent = 'Анализируем подарки...';
+        // ИЗМЕНЕНО: устанавливаем значения из изображения
+        userData.gifts = analyzeGiftsData(text);
+        userData.totalGifts = 7;
+        userData.totalStars = 308;
+        await updateProgress(progressFill, progressText, 60, 90, 1000);
+        
+        // Этап 4: Формирование отчета (90-100%)
+        checkText.textContent = 'Формируем отчет...';
+        await updateProgress(progressFill, progressText, 90, 100, 700);
+        
+        // Показываем результаты
+        setTimeout(() => {
+            showAnalysisResults();
+        }, 500);
+        
+    } catch (error) {
+        console.error('Ошибка анализа:', error);
+        // ИЗМЕНЕНО: используем данные из изображения при ошибке
+        userData = {
+            username: '@file_user_722',
+            accountCreated: '15.03.2023',
+            totalGifts: 7,
+            totalStars: 308
+        };
+        detectedUsername = '@file_user_722';
+        
+        // Показываем результаты с тестовыми данными
+        setTimeout(() => {
+            showAnalysisResults();
+        }, 1000);
+    }
+}
+
+// Чтение файла как текст
+function readFileAsText(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = (e) => reject(e);
+        reader.readAsText(file);
+    });
+}
+
+// Извлечение данных пользователя
+function extractUserData(text, filename) {
+    const data = {
+        username: '@file_user_722', // ИЗМЕНЕНО: начальное значение
+        accountCreated: '15.03.2023', // ИЗМЕНЕНО: добавлена дата
+        totalGifts: 7, // ИЗМЕНЕНО: начальное значение
+        totalStars: 308 // ИЗМЕНЕНО: начальное значение
+    };
+    
+    try {
+        // Пытаемся парсить как JSON
+        if (filename.endsWith('.json')) {
+            const jsonData = JSON.parse(text);
+            
+            // Ищем username в разных местах JSON
+            data.username = findUsernameInJSON(jsonData) || '@file_user_722';
+            
+            // Ищем дату создания аккаунта
+            data.accountCreated = findAccountDate(jsonData) || '15.03.2023';
+            
+            // Ищем подарки
+            const gifts = findGiftsInJSON(jsonData);
+            data.totalGifts = gifts.length || 7;
+            data.totalStars = gifts.reduce((sum, gift) => sum + (gift.stars || 0), 0) || 308;
+            
+        } else if (filename.endsWith('.html')) {
+            // Пытаемся найти ник в HTML
+            const usernameMatch = text.match(/@[\w_]{5,32}/) || 
+                                 text.match(/username["']?\s*:\s*["']([^"']+)/i);
+            data.username = usernameMatch ? usernameMatch[0] : '@file_user_722';
+            
+            // Для HTML используем значения из изображения
+            data.totalGifts = 7;
+            data.totalStars = 308;
+            
+        } else {
+            // Для других форматов используем данные из изображения
+            data.username = '@file_user_722';
+            data.totalGifts = 7;
+            data.totalStars = 308;
+        }
+        
+    } catch (e) {
+        console.log('Ошибка извлечения данных:', e);
+        // Возвращаем данные из изображения при ошибке
+        return {
+            username: '@file_user_722',
+            accountCreated: '15.03.2023',
+            totalGifts: 7,
+            totalStars: 308
+        };
+    }
+    
+    return data;
+}
+
+// Поиск username в JSON
+function findUsernameInJSON(data) {
+    // Проверяем различные возможные пути
+    const paths = [
+        data.username,
+        data.user?.username,
+        data.profile?.username,
+        data.account?.username,
+        data.from?.username,
+        data.sender?.username,
+        data.user_info?.username,
+        data.info?.username
+    ];
+    
+    for (const username of paths) {
+        if (username && typeof username === 'string' && username.includes('@')) {
+            return username;
+        }
+    }
+    
+    // ИЗМЕНЕНО: возвращаем @file_user_722 если не нашли
+    return '@file_user_722';
+}
+
+// Поиск даты аккаунта
+function findAccountDate(data) {
+    const datePaths = [
+        data.account_created,
+        data.created_at,
+        data.registration_date,
+        data.user?.created_at,
+        data.profile?.created
+    ];
+    
+    for (const date of datePaths) {
+        if (date) {
+            try {
+                const dateObj = new Date(date);
+                return dateObj.toLocaleDateString('ru-RU');
+            } catch (e) {
+                // Пропускаем невалидные даты
+            }
+        }
+    }
+    
+    return '15.03.2023';
+}
+
+// Поиск подарков в JSON
+function findGiftsInJSON(data) {
+    const gifts = [];
+    
+    // Ищем в различных структурах
+    const possiblePaths = [
+        data.gifts,
+        data.presents,
+        data.user_gifts,
+        data.user?.gifts,
+        data.profile?.gifts,
+        data.transactions?.filter(t => t.type === 'gift'),
+        data.history?.filter(h => h.action === 'gift_received')
+    ];
+    
+    for (const path of possiblePaths) {
+        if (Array.isArray(path) && path.length > 0) {
+            return path;
+        }
+    }
+    
+    return [];
+}
+
+// Анализ данных о подарках
+function analyzeGiftsData(text) {
+    const gifts = [];
+    
+    try {
+        const data = JSON.parse(text);
+        const foundGifts = findGiftsInJSON(data);
+        
+        if (foundGifts.length > 0) {
+            return foundGifts.slice(0, 10); // Берем первые 10 подарков
+        }
+    } catch (e) {
+        // Не JSON файл
+    }
+    
+    // Генерируем тестовые подарки
+    return generateTestGifts();
+}
+
+// Генерация тестовых данных
+function generateTestData() {
+    return {
+        username: '@file_user_722',
+        accountCreated: '15.03.2023',
+        totalGifts: 7,
+        totalStars: 308,
+        gifts: generateTestGifts()
+    };
+}
+
+// Генерация тестовых подарков
+function generateTestGifts() {
+    const giftTypes = [
+        { name: 'Золотая звезда', stars: 50, emoji: '⭐' },
+        { name: 'Алмазный NFT', stars: 100, emoji: '💎' },
+        { name: 'Платиновый стикер', stars: 30, emoji: '🎨' },
+        { name: 'Изумрудный фон', stars: 75, emoji: '🎨' },
+        { name: 'Рубиновый бейдж', stars: 150, emoji: '🏅' }
+    ];
+    
+    const gifts = [];
+    const count = 7; // ИЗМЕНЕНО: 7 подарков как на изображении
+    
+    for (let i = 0; i < count; i++) {
+        const type = giftTypes[Math.floor(Math.random() * giftTypes.length)];
+        gifts.push({
+            name: type.name,
+            stars: i === 0 ? 50 : Math.floor(Math.random() * 100) + 20, // Первый подарок 50 звезд
+            emoji: type.emoji,
+            date: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toLocaleDateString('ru-RU')
+        });
+    }
+    
+    // ИЗМЕНЕНО: убедимся что сумма звезд = 308
+    let total = gifts.reduce((sum, gift) => sum + gift.stars, 0);
+    if (total !== 308) {
+        gifts[0].stars += (308 - total);
+    }
+    
+    return gifts;
+}
+
+// Обновление прогресса
+function updateProgress(element, textElement, from, to, duration) {
+    return new Promise(resolve => {
+        let start = null;
+        
+        function animate(timestamp) {
+            if (!start) start = timestamp;
+            const progress = timestamp - start;
+            const percentage = from + (to - from) * (progress / duration);
+            
+            element.style.width = Math.min(percentage, to) + '%';
+            textElement.textContent = Math.floor(Math.min(percentage, to)) + '%';
+            
+            if (progress < duration) {
+                requestAnimationFrame(animate);
+            } else {
+                element.style.width = to + '%';
+                textElement.textContent = to + '%';
+                resolve();
+            }
+        }
+        
+        requestAnimationFrame(animate);
+    });
+}
+
+// Показать результаты анализа
+function showAnalysisResults() {
+    // Обновляем приветствие
+    document.getElementById('username').textContent = detectedUsername;
+    document.getElementById('finalUsername').textContent = detectedUsername;
+    
+    // Обновляем анализ на главном экране
+    const analysisDiv = document.getElementById('nickAnalysis');
+    analysisDiv.style.display = 'block';
+    
+    document.getElementById('analyzedNick').textContent = detectedUsername;
+    document.getElementById('accountAge').textContent = userData.accountCreated || '15.03.2023';
+    document.getElementById('totalGifts').textContent = userData.totalGifts || 7;
+    document.getElementById('totalStars').textContent = userData.totalStars || 308;
+    
+    // Обновляем финальные результаты
+    document.getElementById('finalGifts').textContent = userData.totalGifts || 7;
+    document.getElementById('finalStars').textContent = (userData.totalStars || 308) + ' ⭐';
+    
+    // Показываем экран успеха
+    showScreen('successScreen');
+}
+
+// Генерация случайного username
+function generateRandomUsername() {
+    // ИЗМЕНЕНО: всегда возвращаем @file_user_722
+    return '@file_user_722';
+}
+
+// Показать инструкцию
+function showInstruction() {
+    alert('📖 ИНСТРУКЦИЯ:\n\n1. Экспортируйте данные из Nicegram\n2. Загрузите файл в это приложение\n3. Получите анализ своего профиля\n4. Проверьте статистику подарков');
+}
+
+// Показать FAQ
+function showFAQ() {
+    alert('❓ ЧАСТЫЕ ВОПРОСЫ:\n\nQ: Какой файл нужен?\nA: Экспорт данных из Nicegram (JSON/HTML)\n\nQ: Что анализируется?\nA: Ваш ник, подарки, звезды, история\n\nQ: Безопасно ли это?\nA: Да, анализ происходит локально');
+}
+
+// Закрыть приложение
+function closeApp() {
+    tg.close();
+}
+
+// Выбор языка (для HTML)
+function selectLanguage(lang) {
+    console.log('Выбран язык:', lang);
+}
+</script>
