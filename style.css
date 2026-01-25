@@ -162,18 +162,11 @@ body {
 }
 
 .hello {
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.8);
-    margin-bottom: 5px;
-}
-
-.username {
-    font-size: 20px;
+    font-size: 24px;
     font-weight: 700;
     color: white;
-    background: linear-gradient(45deg, #34C7FF, #00FFA3);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    text-align: center;
+    width: 100%;
 }
 
 /* Nicegram заголовок */
@@ -327,71 +320,6 @@ body {
     color: #00FFA3;
 }
 
-/* Анализ ника */
-.nick-analysis {
-    margin-top: 30px;
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 20px;
-    padding: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-}
-
-.nick-analysis h3 {
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 20px;
-    color: white;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.nick-analysis h3 i {
-    color: #34C7FF;
-}
-
-.analysis-results {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-}
-
-.result-item {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    padding: 15px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.result-icon {
-    font-size: 20px;
-    width: 40px;
-    height: 40px;
-    background: rgba(52, 199, 255, 0.2);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.result-info {
-    flex: 1;
-}
-
-.result-label {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.7);
-    margin-bottom: 5px;
-}
-
-.result-value {
-    font-size: 16px;
-    font-weight: 700;
-    color: white;
-}
-
 /* Проверка */
 .check-container {
     text-align: center;
@@ -448,8 +376,21 @@ body {
     height: 100%;
     background: linear-gradient(90deg, #34C7FF, #00FFA3);
     width: 0%;
-    transition: width 0.3s ease;
+    transition: width 0.1s ease;
     border-radius: 4px;
+}
+
+/* Процент загрузки */
+.progress-percentage {
+    font-size: 48px;
+    font-weight: 900;
+    color: #34C7FF;
+    margin: 20px 0;
+    text-shadow: 0 4px 15px rgba(52, 199, 255, 0.4);
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .progress-text {
