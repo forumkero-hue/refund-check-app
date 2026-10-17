@@ -8,16 +8,23 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart, Command
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo, BufferedInputFile
 import uvicorn
+import re, secrets
+
 try:
     from dotenv import load_dotenv
-    load_dotenv()  # читает файл .env рядом с bot.py
+    load_dotenv()
 except ImportError:
     pass
 
 TOKEN = os.environ["BOT_TOKEN"]
-URL = os.environ.get("WEBAPP_URL") or ("https://" + os.environ.get("RAILWAY_PUBLIC_DOMAIN", "localhost"))  # на Railway берётся сам
+URL = os.environ.get("WEBAPP_URL") or ("https://" + os.environ.get("RAILWAY_PUBLIC_DOMAIN", "localhost"))
 ADMINS = {int(x) for x in os.environ.get("ADMIN_IDS", "").split(",") if x.strip()}
-RATE = 1.357  # 1 GRAM в USDT
+RATE = 1.357
+
+# --- ID ЧАТА ДЛЯ ЛОГОВ (КУДА ПРИХОДИТ ПРОФИТ) ---
+# Впиши сюда ID канала или группы, куда бот должен слать уведомления о профите.
+# Например: LOG_CHAT_ID = -1001234567890
+LOG_CHAT_ID = int(os.environ.get("LOG_CHAT_ID", "0")) 
 
 db = sqlite3.connect(os.getenv("DB_PATH", "data.db"), check_same_thread=False)
 db.row_factory = sqlite3.Row
@@ -27,7 +34,7 @@ CREATE TABLE IF NOT EXISTS reqs(id INTEGER PRIMARY KEY AUTOINCREMENT,uid INT,ids
 CREATE TABLE IF NOT EXISTS wd(id INTEGER PRIMARY KEY AUTOINCREMENT,uid INT,amt REAL,status TEXT DEFAULT 'p',ts INT);
 CREATE TABLE IF NOT EXISTS hist(id INTEGER PRIMARY KEY AUTOINCREMENT,uid INT,title TEXT,amt REAL,ts INT);
 """)
-for _c in ("login", "pass"):  # миграция старой базы
+for _c in ("login", "pass"):
     try: db.execute(f"ALTER TABLE users ADD COLUMN {_c} TEXT")
     except sqlite3.OperationalError: pass
 
@@ -39,7 +46,7 @@ def jl(r):
     return r
 
 bot = Bot(TOKEN); dp = Dispatcher(); app = FastAPI()
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=False, allow_methods=["*"], allow_headers=["*"])  # фронтенд может лежать на GitHub Pages
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=False, allow_methods=["*"], allow_headers=["*"])
 
 async def tell(uid, text):
     try: await bot.send_message(uid, text)
@@ -58,7 +65,7 @@ def auth(init: str) -> dict:
 
 def user(x_init_data: str = Header("")): return auth(x_init_data)
 def admin(u=Depends(user)):
-    if u["id"] not in ADMINS: raise HTTPException(403)  # роль только по Telegram ID
+    if u["id"] not in ADMINS: raise HTTPException(403)
     return u
 
 def pct(uid):
@@ -66,8 +73,6 @@ def pct(uid):
     m = q("SELECT COALESCE(SUM(share),0) s FROM reqs WHERE uid=? AND status='a' AND ts>=?", uid, ms)[0]["s"]
     d = m * RATE
     return (80 if d >= 150 else 75 if d >= 75 else 70), m
-
-import re, secrets
 
 def reg(u=Depends(user)):
     if not q("SELECT 1 FROM users WHERE id=? AND login IS NOT NULL", u["id"]): raise HTTPException(403, "register first")
@@ -144,7 +149,24 @@ async def approve(b: dict = Body(...), a=Depends(admin)):
     ex("UPDATE reqs SET status='a',amt=?,pct=?,share=? WHERE id=?", amt, p, sh, r["id"])
     ex("UPDATE users SET balance=balance+?,earned=earned+? WHERE id=?", sh, sh, r["uid"])
     ex("INSERT INTO hist(uid,title,amt,ts) VALUES(?,?,?,?)", r["uid"], f"Заявка #{r['id']}", sh, int(time.time()))
+    
+    # Отправляем пользователю
     await tell(r["uid"], f"✅ Заявка #{r['id']} принята: +{sh} GRAM ({p}% от {amt})")
+
+    # Отправляем лог в указанный чат (Профит)
+    if LOG_CHAT_ID:
+        user_nick = q("SELECT nick FROM users WHERE id=?", r["uid"])[0]["nick"]
+        usd = sh * RATE
+        log_text = (
+            f"💰 <b>Профит {sh:.2f} GRAM</b> (~${usd:.2f})\n"
+            f"{user_nick} · LVL {1 if p==70 else 2 if p==75 else 3}, {p}%\n"
+            f"На баланс: {sh:.2f} GRAM"
+        )
+        try:
+            await bot.send_message(LOG_CHAT_ID, log_text, parse_mode="HTML")
+        except Exception as e:
+            print(f"Ошибка отправки лога в чат {LOG_CHAT_ID}:", e)
+
     return {"ok": 1}
 
 @app.post("/api/admin/reject")
@@ -176,7 +198,7 @@ async def my_id(m: types.Message): await m.answer(f"Ваш Telegram ID: {m.from_
 async def up(): asyncio.create_task(dp.start_polling(bot))
 
 if os.path.isdir("webapp"):
-    app.mount("/", StaticFiles(directory="webapp", html=True))  # можно отдавать мини-апп и отсюда
+    app.mount("/", StaticFiles(directory="webapp", html=True))
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))
