@@ -150,7 +150,7 @@ async def my_id(m: types.Message): await m.answer(f"Ваш Telegram ID: {m.from_
 @app.on_event("startup")
 async def up(): asyncio.create_task(dp.start_polling(bot))
 
-app.mount("/", StaticFiles(directory="webapp", html=True))  # мини-апп отдаётся отсюда
+#app.mount("/", StaticFiles(directory="webapp", html=True))  # мини-апп отдаётся отсюда
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))
