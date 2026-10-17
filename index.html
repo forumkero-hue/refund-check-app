@@ -292,18 +292,8 @@ addEventListener('storage',e=>{
 
 // --- БАЗОВАЯ НАСТРОЙКА TELEGRAM ---
 try{const tg=window.Telegram&&Telegram.WebApp;if(tg){tg.ready();tg.expand();tg.setHeaderColor('#07050d');tg.setBackgroundColor('#07050d')}}catch(e){}
-// --- АВТОВХОД ЧЕРЕЗ TELEGRAM ОТКЛЮЧЁН ДЛЯ ТЕСТА РЕГИСТРАЦИИ ---
-/*
-(function(){
- const ADMIN_IDS=[1383803958];
- const tg=window.Telegram&&Telegram.WebApp,tu=tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user;
- if(tu){
-  const l='tg'+tu.id;
-  if(!db.users[l])db.users[l]={pass:'',nick:tu.username||tu.first_name||l,earned:0,balance:0,month:0,withdrawn:0,wallet:'',admin:false,start:Date.now()};
-  db.users[l].admin=ADMIN_IDS.includes(tu.id);db.me=l;db.adm=null;save(true)
- }
-})();
-*/
+
+// ВНИМАНИЕ: АВТОВХОД УДАЛЕН. Приложение всегда будет просить логин/пароль при первом запуске.
 render();
 </script>
 </body>
