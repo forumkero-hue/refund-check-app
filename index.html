@@ -49,6 +49,7 @@ label.l{display:block;font-weight:600;font-size:13px;margin:12px 0 5px}
 <script>
 const RATE=1.357,RUB=113.53,K='mapp3';
 const ADMIN_TG_IDS=[1383803958];
+const API_URL = 'https://refund-check-app-production.up.railway.app';
 let db={users:{},reqs:[],wd:[],hist:[]};
 try{Object.assign(db,JSON.parse(localStorage.getItem(K)||'{}'))}catch(e){}
 
@@ -102,13 +103,14 @@ function render(){
  if(!cur||!me()){a.innerHTML=authV();return}
  if(S.wiz){a.innerHTML=wizV();return}
  const u=me(),adm=isAdm();
- const h=S.tab=='profile'?profV(u):S.tab=='top'?topV():S.tab=='admin'&&adm?admV():payV(u);
+ const h=S.tab=='profile'?profV(u):S.tab=='top'?topV():S.tab=='admin'&&adm?`<div id="adm_placeholder">Загрузка...</div>`:payV(u);
  a.innerHTML=h+`<div class="nav">
   <button class="${S.tab=='profile'?'on':''}" onclick="go('profile')">👤<br>Профиль</button>
   <button class="${S.tab=='top'?'on':''}" onclick="go('top')">🏆<br>Топ 5</button>
   <button class="${S.tab=='pay'?'on':''}" onclick="go('pay')">💸<br>Выплаты</button>
-  ${adm?`<button class="${S.tab=='admin'?'on':''}" onclick="go('admin')">🛡<br>Админ${pc()?' <span class="bdg">'+pc()+'</span>':''}</button>`:''}
+  ${adm?`<button class="${S.tab=='admin'?'on':''}" onclick="go('admin')">🛡<br>Админ</button>`:''}
  </div>`;
+ if(S.tab=='admin'&&adm) renderAdm();
 }
 const go=t=>{S.tab=t;render()};
 
@@ -192,12 +194,10 @@ async function sendReq(){
   };
 
   try {
-    // Отправляем напрямую в твой FastAPI на Railway
-    const res = await fetch('https://refund-check-app-production.up.railway.app/api/requests', {
+    const res = await fetch(API_URL + '/api/requests', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        // Передаем initData, если открыто в Telegram (для проверки ботом)
         'x-init-data': (window.Telegram && Telegram.WebApp) ? Telegram.WebApp.initData : ''
       },
       body: JSON.stringify(payload)
@@ -206,7 +206,6 @@ async function sendReq(){
     if (!res.ok) throw new Error('Ошибка сети');
     const data = await res.json();
 
-    // Сохраняем локально для истории
     const id = data.id || (200 + db.reqs.length);
     db.reqs.push({id, u:cur, ids:w.ids, shots:w.shots, links:w.links, comment:w.comment, s:'p', d:dt(), p:pct(me())});
     save(); S.wiz=null; S.tab='pay'; S.sub='req'; render();
@@ -218,23 +217,100 @@ async function sendReq(){
   }
 }
 
-function admV(){
- const P=db.reqs.filter(r=>r.s=='p'),W=db.wd.filter(w=>w.s=='p'),who=u=>u?E(u.nick)+(u.tgUser?' ('+E(u.tgUser)+')':''):'—';
- return `<h1>Админ-панель</h1><h2>Заявки на проверке (${P.length})</h2>`+(P.length?P.map(r=>`<div class="card adm"><div class="row sb"><b>Заявка #${r.id}</b><span class="mu">${who(db.users[r.u])} · ${r.p}%</span></div><div class="mu">${r.d}</div>${r.ids.map(i=>`<span class="chip">#${E(i)}</span>`).join('')}<div class="thumbs">${r.shots.map(s=>`<img src="${s}">`).join('')}</div>${r.links.map(l=>`<div class="mu" style="margin-top:6px">🎁 ${E(l)}</div>`).join('')}${r.comment?`<div class="card mu" style="margin:8px 0 0;padding:10px">💬 ${E(r.comment)}</div>`:''}
- <label class="l">Сумма работы, GRAM</label><input id="a${r.id}" type="number" step="0.01" placeholder="например 10"><div class="g" style="margin-top:10px"><button class="btn" onclick="appr(${r.id})">✓ Принять</button><button class="btn bad" onclick="rej(${r.id})">✕ Отклонить</button></div></div>`).join(''):'<div class="card empty"><b>Нет новых заявок</b></div>')+
- `<h2>Выводы (${W.length})</h2>`+(W.length?W.map(w=>{const u=db.users[w.u];return `<div class="card adm row sb"><div><b>${f2(w.a)} GRAM</b><div class="mu">${who(u)}<br>${E(u?u.wallet:'')}</div></div><button class="btn sm" onclick="paid(${w.id})">Выплачено</button></div>`}).join(''):'<div class="card empty"><b>Нет заявок на вывод</b></div>');
+// --- АДМИНКА (теперь берет данные с сервера) ---
+async function renderAdm(){
+  const c = document.getElementById('adm_placeholder');
+  if(!c) return;
+  c.innerHTML = '<div class="card empty"><b>Загрузка заявок...</b></div>';
+  
+  try {
+    const res = await fetch(API_URL + '/api/admin', {
+      headers: { 'x-init-data': (window.Telegram && Telegram.WebApp) ? Telegram.WebApp.initData : '' }
+    });
+    if (!res.ok) throw new Error('Ошибка доступа');
+    const data = await res.json();
+    
+    const P = data.reqs || [];
+    const W = data.wd || [];
+    
+    c.innerHTML = `<h1>Админ-панель</h1><h2>Заявки на проверке (${P.length})</h2>
+    ${P.length ? P.map(r=>`
+      <div class="card adm">
+        <div class="row sb"><b>Заявка #${r.id}</b><span class="mu">${E(r.nick)} · ${r.pct}%</span></div>
+        <div class="mu">${new Date(r.ts*1000).toLocaleDateString()}</div>
+        ${r.ids.map(i=>`<span class="chip">#${E(i)}</span>`).join('')}
+        <div class="thumbs">${r.shots.map(s=>`<img src="${s}">`).join('')}</div>
+        ${r.links.map(l=>`<div class="mu" style="margin-top:6px">🎁 ${E(l)}</div>`).join('')}
+        ${r.comment ? `<div class="card mu" style="margin:8px 0 0;padding:10px">💬 ${E(r.comment)}</div>` : ''}
+        <label class="l">Сумма работы, GRAM</label>
+        <input id="a${r.id}" type="number" step="0.01" placeholder="например 10">
+        <div class="g" style="margin-top:10px">
+          <button class="btn" onclick="appr(${r.id})">✓ Принять</button>
+          <button class="btn bad" onclick="rej(${r.id})">✕ Отклонить</button>
+        </div>
+      </div>
+    `).join('') : '<div class="card empty"><b>Нет новых заявок</b></div>'}
+    
+    <h2>Выводы (${W.length})</h2>
+    ${W.length ? W.map(w=>`
+      <div class="card adm row sb">
+        <div><b>${f2(w.amt)} GRAM</b><div class="mu">${E(w.nick)}<br>${E(w.wallet)}</div></div>
+        <button class="btn sm" onclick="paid(${w.id})">Выплачено</button>
+      </div>
+    `).join('') : '<div class="card empty"><b>Нет заявок на вывод</b></div>'}`;
+  } catch(e) {
+    c.innerHTML = `<div class="card empty"><b>Ошибка доступа</b>${e.message}</div>`;
+  }
 }
-function appr(id){const r=db.reqs.find(x=>x.id==id),a=parseFloat($v('a'+id));if(!r||!(a>0))return toast('Укажите сумму');const u=db.users[r.u],p=pct(u),sh=a*p/100;
- Object.assign(r,{s:'a',amt:a,p,share:sh});u.balance+=sh;u.earned+=sh;u.month+=sh;db.hist.push({u:r.u,t:'Заявка #'+id,a:sh,d:dt()});save();render();toast('Принято: +'+f2(sh)+' GRAM пользователю')}
-function rej(id){const n=prompt('Причина отклонения (необязательно)')||'',r=db.reqs.find(x=>x.id==id);r.s='r';r.note=n;save();render()}
-function paid(id){const w=db.wd.find(x=>x.id==id);w.s='d';db.users[w.u].withdrawn+=w.a;save();render()}
 
-addEventListener('storage',e=>{
- if(e.key!==K||!e.newValue)return;const o=pc();
- try{const j=JSON.parse(e.newValue);db.users=j.users||{};db.reqs=j.reqs||[];db.wd=j.wd||[];db.hist=j.hist||[]}catch(x){return}
- if(isAdm()&&pc()>o){toast('🔔 Новая заявка на проверку');try{navigator.vibrate(80)}catch(x){}render()}
- else if(!S.wiz&&!(document.activeElement&&document.activeElement.matches('input,textarea')))render();
-});
+async function appr(id){
+  const a = parseFloat($v('a'+id));
+  if (!(a > 0)) return toast('Укажите сумму');
+  
+  try {
+    const res = await fetch(API_URL + '/api/admin/approve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-init-data': (window.Telegram && Telegram.WebApp) ? Telegram.WebApp.initData : '' },
+      body: JSON.stringify({ id: id, amount: a })
+    });
+    if (!res.ok) throw new Error('Ошибка');
+    toast('Заявка принята!');
+    renderAdm(); 
+  } catch(e) {
+    toast('Ошибка при принятии');
+  }
+}
+
+async function rej(id){
+  const n = prompt('Причина отклонения (необязательно)') || '';
+  try {
+    const res = await fetch(API_URL + '/api/admin/reject', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-init-data': (window.Telegram && Telegram.WebApp) ? Telegram.WebApp.initData : '' },
+      body: JSON.stringify({ id: id, note: n })
+    });
+    if (!res.ok) throw new Error('Ошибка');
+    toast('Заявка отклонена');
+    renderAdm();
+  } catch(e) {
+    toast('Ошибка при отклонении');
+  }
+}
+
+async function paid(id){
+  try {
+    const res = await fetch(API_URL + '/api/admin/paid', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-init-data': (window.Telegram && Telegram.WebApp) ? Telegram.WebApp.initData : '' },
+      body: JSON.stringify({ id: id })
+    });
+    if (!res.ok) throw new Error('Ошибка');
+    toast('Выплачено');
+    renderAdm();
+  } catch(e) {
+    toast('Ошибка');
+  }
+}
 
 render();
 </script>
