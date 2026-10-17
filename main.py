@@ -93,6 +93,7 @@ def register(b: dict = Body(...), u=Depends(user)):
     if q("SELECT 1 FROM users WHERE id=? AND login IS NOT NULL", u["id"]): raise HTTPException(400, "already registered")
     if q("SELECT 1 FROM users WHERE login=?", login): raise HTTPException(409, "login taken")
     ex("UPDATE users SET login=?,pass=?,nick=? WHERE id=?", login, pw_hash(pw), nick, u["id"])
+    schedule_backup()
     return {"ok": 1}
 
 fails = {}
@@ -113,6 +114,7 @@ def login(b: dict = Body(...), u=Depends(user)):
         raise HTTPException(401, "bad login")
     ex("DELETE FROM users WHERE id=? AND login IS NULL AND balance=0 AND earned=0", u["id"])
     ex("INSERT OR REPLACE INTO links(tg,acc) VALUES(?,?)", u["tg"], row[0]["id"])
+    schedule_backup()
     return {"ok": 1}
 
 @app.get("/api/me")
@@ -217,6 +219,19 @@ async def send_backup(chat, note=""):
             caption=f"💾 Резервная копия базы {note}\nЧтобы восстановить — отправьте этот файл боту.")
     except Exception as e: print("backup fail", chat, e)
 
+LOOP = None; bk_task = None
+
+async def debounce_backup():
+    await asyncio.sleep(60)  # несколько регистраций подряд — одна копия
+    for a in ADMINS: await send_backup(a, "(новый пользователь)")
+
+def _start_bk():
+    global bk_task
+    if bk_task is None or bk_task.done(): bk_task = asyncio.ensure_future(debounce_backup())
+
+def schedule_backup():  # вызывается после регистрации/входа
+    if LOOP: LOOP.call_soon_threadsafe(_start_bk)
+
 async def backup_loop():
     while True:
         await asyncio.sleep(6 * 3600)
@@ -249,6 +264,7 @@ async def my_id(m: types.Message): await m.answer(f"Ваш Telegram ID: {m.from_
 
 @app.on_event("startup")
 async def up():
+    global LOOP; LOOP = asyncio.get_running_loop()
     asyncio.create_task(dp.start_polling(bot)); asyncio.create_task(backup_loop())
     n = q("SELECT COUNT(*) c FROM users")[0]["c"]
     for a in ADMINS:
