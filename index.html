@@ -1,4 +1,9 @@
-<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Выплаты</title>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Выплаты</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 :root{--bg:#07050d;--card:#14101f;--card2:#1b1530;--line:#2a2145;--tx:#f4f0ff;--mu:#8d84a8;--ac:#a855f7;--ac2:#7c3aed;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -33,11 +38,19 @@ label{display:block;font-weight:600;font-size:13px;margin:12px 0 5px}
 #app.go>*{animation:up .5s cubic-bezier(.2,.8,.2,1) both}#app.go>*:nth-child(2){animation-delay:.06s}#app.go>*:nth-child(3){animation-delay:.12s}#app.go>*:nth-child(4){animation-delay:.18s}#app.go>*:nth-child(5){animation-delay:.24s}#app.go>*:nth-child(n+6){animation-delay:.3s}
 .card{transition:transform .2s,border-color .25s}.card:active{transform:scale(.985)}.btn{transition:transform .15s,filter .2s}.btn:active{transform:scale(.95)}.btn:not(:disabled):not(.sec):not(.bad){animation:glow 2.8s infinite}.nav button,.tabs button{transition:background .3s,color .3s}.nav .on{transform:translateY(-2px)}
 .chip,.thumbs img,.st{animation:pop .4s both}.bar div{animation:grow 1.1s ease-out both}#toast{animation:tin .3s ease-out}.bdg{background:var(--ac);color:#fff;border-radius:10px;padding:1px 7px;font-size:12px;animation:ring 1.6s infinite}.fl{display:inline-block;animation:fl 3s ease-in-out infinite}
-</style></head><body><div id="toast"></div><div id="app"></div>
+</style>
+</head>
+<body>
+<div id="toast"></div>
+<div id="app"></div>
 <script>
-const RATE=1.357,RUB=113.53;let db={users:{},reqs:[],wd:[],hist:[],admins:{},me:null,adm:null};
+const RATE=1.357,RUB=113.53;
+let db={users:{},reqs:[],wd:[],hist:[],admins:{},me:null,adm:null};
 try{db=Object.assign(db,JSON.parse(localStorage.getItem('mapp2')||'{}'))}catch(e){}
-const SESS=()=>{try{return JSON.parse(localStorage.getItem('mapp2s')||sessionStorage.getItem('mapp2s')||'{}')}catch(e){return{}}};db.me=SESS().me||null;db.adm=SESS().adm||null;
+
+const SESS=()=>{try{return JSON.parse(localStorage.getItem('mapp2s')||sessionStorage.getItem('mapp2s')||'{}')}catch(e){return{}}};
+db.me=SESS().me||null;
+db.adm=SESS().adm||null;
 
 const save=(remember)=>{
  try{
@@ -55,49 +68,97 @@ const save=(remember)=>{
 
 const S={tab:'profile',sub:'req',mode:'login',wiz:null,cur:'GRAM'};
 const E=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const me=()=>db.users[db.me],f2=n=>(+n).toFixed(2),pct=u=>{const d=u.month*RATE;return d>=150?80:d>=75?75:70},lvl=u=>({70:1,75:2,80:3}[pct(u)]);
+const me=()=>db.users[db.me];
+const f2=n=>(+n).toFixed(2);
+const pct=u=>{const d=u.month*RATE;return d>=150?80:d>=75?75:70};
+const lvl=u=>({70:1,75:2,80:3}[pct(u)]);
+
 function toast(t){const e=document.getElementById('toast');e.textContent=t;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',2600)}
 async function hash(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('salt:'+s));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
 const $v=id=>(document.getElementById(id)||{}).value||'';
-async function auth(){const l=$v('l').trim().toLowerCase(),p=$v('p');
+
+async function auth(){
+ const l=$v('l').trim().toLowerCase(),p=$v('p');
  if(!/^[a-z0-9.\-]{3,}$/.test(l))return toast('Логин: латиница, цифры, точка, дефис — от 3 символов');
- if(S.mode=='reg'){if(p.length<8)return toast('Пароль — минимум 8 символов');if(p!==$v('p2'))return toast('Пароли не совпадают');if(db.users[l])return toast('Логин занят');
-  db.users[l]={pass:await hash(p),nick:$v('n').trim()||l,earned:0,balance:0,month:0,withdrawn:0,wallet:'',admin:false,start:Date.now()}}
- else{const u=db.users[l];if(!u||u.pass!==await hash(p))return toast('Неверный логин или пароль')}
- db.me=l;db.adm=null;save($v('remember')==='1');S.tab='profile';render()}
+ 
+ if(S.mode=='reg'){
+  if(p.length<8)return toast('Пароль — минимум 8 символов');
+  if(p!==$v('p2'))return toast('Пароли не совпадают');
+  if(db.users[l])return toast('Логин занят');
+  db.users[l]={pass:await hash(p),nick:$v('n').trim()||l,earned:0,balance:0,month:0,withdrawn:0,wallet:'',admin:false,start:Date.now()};
+ } else {
+  const u=db.users[l];
+  if(!u||u.pass!==await hash(p))return toast('Неверный логин или пароль');
+ }
+ 
+ db.me=l;db.adm=null;
+ const remember = document.getElementById('remember') ? document.getElementById('remember').checked : true;
+ save(remember);
+ S.tab='profile';
+ render();
+}
 
 function render(){
  const a=document.getElementById('app');
  const k=db.adm?'A'+S.at:!db.me?'u'+S.mode:S.wiz?'w'+S.wiz.step:S.tab;
  a.classList.toggle('go',render.k!==k);render.k=k;
+ 
  if(db.adm&&db.admins[db.adm]){a.innerHTML=admShell();return}
  if(!db.me||!me()){a.innerHTML=authV();return}
  if(S.wiz){a.innerHTML=wizV();return}
+ 
  const u=me();
  let h=S.tab=='profile'?profV(u):S.tab=='top'?topV():S.tab=='admin'?admV():payV(u);
- a.innerHTML=h+`<div class="nav"><button class="${S.tab=='profile'?'on':''}" onclick="go('profile')">👤<br>Профиль</button><button class="${S.tab=='top'?'on':''}" onclick="go('top')">🏆<br>Топ 5</button><button class="${S.tab=='pay'?'on':''}" onclick="go('pay')">💸<br>Выплаты</button>${u.admin?`<button class="${S.tab=='admin'?'on':''}" onclick="go('admin')">🛡<br>Админ</button>`:''}</div>`;
+ a.innerHTML=h+`<div class="nav">
+   <button class="${S.tab=='profile'?'on':''}" onclick="go('profile')">👤<br>Профиль</button>
+   <button class="${S.tab=='top'?'on':''}" onclick="go('top')">🏆<br>Топ 5</button>
+   <button class="${S.tab=='pay'?'on':''}" onclick="go('pay')">💸<br>Выплаты</button>
+   ${u.admin?`<button class="${S.tab=='admin'?'on':''}" onclick="go('admin')">🛡<br>Админ</button>`:''}
+ </div>`;
 }
 const go=t=>{S.tab=t;render()};
 
+// === ФОРМА ВХОДА И РЕГИСТРАЦИИ ===
 function authV(){
  if(S.mode=='admin')return admAuthV();
  const r=S.mode=='reg';
  return `<div style="text-align:center;padding-top:20px"><h1 style="letter-spacing:2px">НАЗВАНИЕ</h1><div class="mu">${r?'Создайте аккаунт за пару секунд':'Войдите в свой аккаунт'}</div></div>
 <div class="card" style="margin-top:18px">
- <div class="tabs"><button class="${r?'':'on'}" onclick="S.mode='login';render()">Вход</button><button class="${r?'on':''}" onclick="S.mode='reg';render()">Регистрация</button></div>
- <label>Логин</label><input id="l" placeholder="your.login" autocapitalize="off">
- ${r?'<div class="mu">Латиница, цифры, точка, дефис — от 3 символов</div><label>Никнейм</label><input id="n" placeholder="Необязательно"><div class="mu">Виден в рейтинге. Если пусто — будет как логин</div>':''}
+ <div class="tabs">
+   <button class="${r?'':'on'}" onclick="S.mode='login';render()">Вход</button>
+   <button class="${r?'on':''}" onclick="S.mode='reg';render()">Регистрация</button>
+ </div>
+ 
+ <label>Логин</label>
+ <input id="l" placeholder="your.login" autocapitalize="off">
+ 
+ ${r?`
+   <div class="mu">Латиница, цифры, точка, дефис — от 3 символов</div>
+   <label>Никнейм</label>
+   <input id="n" placeholder="Необязательно">
+   <div class="mu">Виден в рейтинге. Если пусто — будет как логин</div>
+ `:''}
+ 
  <label>Пароль</label>
  <div class="pwd-wrap">
   <input id="p" type="password" placeholder="••••••••">
   <button class="pwd-toggle" type="button" onclick="togglePwd('p',this)">👁</button>
  </div>
- ${r?'<div class="mu">Минимум 8 символов</div><label>Повторите пароль</label><div class="pwd-wrap"><input id="p2" type="password" placeholder="••••••••"><button class="pwd-toggle" type="button" onclick="togglePwd(\'p2\',this)">👁</button></div>':''}
+ 
+ ${r?`
+   <div class="mu">Минимум 8 символов</div>
+   <label>Повторите пароль</label>
+   <div class="pwd-wrap">
+     <input id="p2" type="password" placeholder="••••••••">
+     <button class="pwd-toggle" type="button" onclick="togglePwd('p2',this)">👁</button>
+   </div>
+ `:''}
  
  <div class="switch-row">
   <div class="txt"><b>Запомнить эту Telegram-сессию</b><div class="mu">Пароль не понадобится при следующем входе</div></div>
   <label class="switch"><input type="checkbox" id="remember" value="1" checked><span class="slider"></span></label>
  </div>
+ 
  <div style="height:14px"></div>
  <button class="btn" onclick="auth()">${r?'Создать аккаунт':'Войти'}</button>
 </div>
@@ -105,7 +166,11 @@ function authV(){
 <button class="btn sec" onclick="S.mode='admin';render()">🛡 Вход для администраторов</button>`;
 }
 
-function togglePwd(id,btn){const i=document.getElementById(id);if(!i)return;if(i.type==='password'){i.type='text';btn.textContent='🙈'}else{i.type='password';btn.textContent='👁'}}
+function togglePwd(id,btn){
+ const i=document.getElementById(id);
+ if(!i)return;
+ if(i.type==='password'){i.type='text';btn.textContent='🙈'}else{i.type='password';btn.textContent='👁'}
+}
 
 function profV(u){
  const p=pct(u),d=u.month*RATE,nx=p==70?75:p==75?150:null,to=p==70?75:150,w=nx?Math.min(100,d/to*100):100;
@@ -237,4 +302,6 @@ try{const tg=window.Telegram&&Telegram.WebApp;if(tg){tg.ready();tg.expand();tg.s
  }
 })();
 render();
-</script></body></html>
+</script>
+</body>
+</html>
