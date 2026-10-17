@@ -211,7 +211,7 @@ addEventListener('storage',e=>{
 /* ===== Данные берутся с сервера (Railway) — localStorage больше не источник истины ===== */
 const API_URL='https://refund-check-app-production.up.railway.app'; // адрес сервера с bot.py
 db={users:{},reqs:[],wd:[],hist:[]};cur=null;
-let loaded=false,loadErr='',first=true;
+let loaded=false,loadErr='',first=true,regShown=false;
 document.head.insertAdjacentHTML('beforeend','<style>.btn.bad[onclick="logout()"]{display:none}</style>');
 const API=async(p,b)=>{const r=await fetch(API_URL+'/api/'+p,{method:b?'POST':'GET',headers:{'Content-Type':'application/json','x-init-data':(window.Telegram&&Telegram.WebApp&&Telegram.WebApp.initData)||''},body:b?JSON.stringify(b):undefined});
  if(!r.ok){let t='';try{t=(await r.json()).detail||''}catch(e){}throw new Error(r.status+(t?' '+t:''))}return r.json()};
@@ -240,8 +240,8 @@ function logout(){toast('Вы вошли через свой Telegram-аккау
 
 async function sync(){
  try{const o=pc(),wasOut=!cur,m=await API('me'),id=String(m.user.id);ADM=!!m.admin;loadErr='';
-  if(!m.registered){cur=null;if(wasOut||first||!loaded){loaded=true;first=false;render()}return}
-  db.users={};m.top.forEach(t=>{if(String(t.id)!=id)db.users[t.id]=Object.assign(blank(t.nick),{earned:t.earned})});
+  if(!m.registered){cur=null;const was=loaded&&regShown;loaded=true;first=false;if(!was){regShown=true;render()}return}
+  regShown=false;db.users={};m.top.forEach(t=>{if(String(t.id)!=id)db.users[t.id]=Object.assign(blank(t.nick),{earned:t.earned})});
   db.users[id]={nick:m.user.nick,balance:m.user.balance,earned:m.user.earned,month:m.user.month,withdrawn:m.user.withdrawn,wallet:m.user.wallet||'',tgUser:'',admin:m.admin};
   let R=m.reqs.map(mp),W=m.wd.map(w=>({id:w.id,u:id,a:w.amt,s:w.status,d:D(w.ts)}));
   if(m.admin){const A=await API('admin'),ens=(uid,nick,wallet)=>{const x=db.users[uid]||(db.users[uid]=blank(nick));x.nick=nick;if(wallet)x.wallet=wallet};
@@ -251,7 +251,7 @@ async function sync(){
   if(m.admin&&!first&&pc()>o){toast('🔔 Новая заявка на проверку');try{navigator.vibrate(80)}catch(x){}}
   const busy=S.wiz||(document.activeElement&&document.activeElement.matches('input,textarea'));
   loaded=true;if(wasOut||!busy)render();first=false}
- catch(e){loadErr=e.message;loaded=true;if(!cur)render()}}
+ catch(e){loadErr=e.message;loaded=true;regShown=false;if(!cur)render()}}
 
 async function sendReq(){const w=S.wiz;try{const r=await API('requests',{ids:w.ids,links:w.links,shots:w.shots,comment:w.comment});S.wiz=null;S.tab='pay';S.sub='req';await sync();toast('Заявка #'+r.id+' отправлена на проверку')}catch(e){toast('Не удалось отправить заявку')}}
 async function wallet(){const w=prompt('Адрес GRAM-кошелька');if(w&&w.trim().length>5){try{await API('wallet',{wallet:w.trim()});await sync();toast('Кошелёк сохранён')}catch(e){toast('Ошибка')}}}
