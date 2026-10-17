@@ -9,213 +9,138 @@
 :root{--bg:#07050d;--card:#14101f;--card2:#1b1530;--line:#2a2145;--tx:#f4f0ff;--mu:#8d84a8;--ac:#a855f7;--ac2:#7c3aed;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}*{box-sizing:border-box}
 body{margin:0;background:radial-gradient(900px 400px at 80% -10%,#3b1670 0,transparent 60%),var(--bg);color:var(--tx);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh}
-#app{max-width:480px;margin:0 auto;padding:18px 16px 110px}
-h1{font-size:30px;margin:6px 0 14px}h2{font-size:22px;margin:4px 0 12px}
+#app{max-width:480px;margin:0 auto;padding:18px 16px 130px}
+h1{font-size:30px;margin:6px 0 14px}h2{font-size:20px;margin:14px 0 10px}
 .card{background:linear-gradient(160deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:12px}
 .mu{color:var(--mu);font-size:13px}.ac{color:var(--ac)}.row{display:flex;gap:10px;align-items:center}.sb{justify-content:space-between}.g{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.big{font-size:40px;font-weight:800}.big small{font-size:18px;color:var(--ac)}
-.btn{border:0;border-radius:14px;padding:14px;font-weight:700;font-size:15px;color:#fff;background:linear-gradient(180deg,#b86cff,var(--ac2));cursor:pointer;width:100%;box-shadow:0 6px 20px #7c3aed55}
-.btn.sec{background:var(--card2);border:1px solid var(--line);box-shadow:none;color:var(--tx)}.btn.bad{background:#3a1420;color:var(--bad);box-shadow:none}.btn:disabled{opacity:.4;box-shadow:none}.btn.sm{padding:9px 14px;width:auto}
-input,textarea{width:100%;background:#0f0b1a;border:1px solid var(--line);border-radius:12px;padding:13px;color:var(--tx);font:inherit;outline:0}input:focus,textarea:focus{border-color:var(--ac)}
-label{display:block;font-weight:600;font-size:13px;margin:12px 0 5px}
-.tabs{display:flex;background:#0f0b1a;border:1px solid var(--line);border-radius:16px;padding:4px;margin:12px 0}.tabs button{flex:1;border:0;background:none;color:var(--mu);padding:10px;border-radius:12px;font-weight:700;cursor:pointer}.tabs .on{background:linear-gradient(180deg,#b86cff,var(--ac2));color:#fff}
+.big{font-size:40px;font-weight:800;line-height:1.1}.big small{font-size:18px;color:var(--ac)}
+button{font-family:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.btn{display:block;border:0;border-radius:14px;padding:14px 16px;min-height:48px;font-weight:700;font-size:15px;color:#fff;background:linear-gradient(180deg,#b86cff,var(--ac2));cursor:pointer;width:100%;box-shadow:0 6px 20px #7c3aed55;transition:transform .15s}
+.btn:active{transform:scale(.96)}.btn.sec{background:var(--card2);border:1px solid var(--line);box-shadow:none;color:var(--tx)}.btn.bad{background:#3a1420;color:var(--bad);box-shadow:none}.btn:disabled{opacity:.4;box-shadow:none;cursor:default}.btn.sm{padding:10px 14px;min-height:44px;width:auto;white-space:nowrap;flex-shrink:0}
+.btn:not(:disabled):not(.sec):not(.bad){animation:glow 2.8s infinite}
+input,textarea{width:100%;background:#0f0b1a;border:1px solid var(--line);border-radius:12px;padding:13px;color:var(--tx);font:inherit;outline:0;min-width:0}input:focus,textarea:focus{border-color:var(--ac)}
+label.l{display:block;font-weight:600;font-size:13px;margin:12px 0 5px}
+.tabs{display:flex;background:#0f0b1a;border:1px solid var(--line);border-radius:16px;padding:4px;margin:12px 0}.tabs button{flex:1;min-height:42px;border:0;background:none;color:var(--mu);padding:8px;border-radius:12px;font-weight:700;cursor:pointer;transition:background .3s,color .3s}.tabs .on{background:linear-gradient(180deg,#b86cff,var(--ac2));color:#fff}
 .nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;gap:4px;background:#100c1c;border:1px solid var(--line);border-radius:26px;padding:6px;width:min(440px,calc(100% - 28px));z-index:5}
-.nav button{flex:1;border:0;background:none;color:var(--mu);padding:10px 4px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer}.nav .on{background:#2a1850;color:#d8b4fe}
-.chip{display:inline-block;background:#2a1850;border:1px solid #5b34a0;border-radius:10px;padding:6px 10px;margin:4px 4px 0 0;font-weight:700}.chip i{cursor:pointer;color:var(--mu);margin-left:6px;font-style:normal}
-.st{font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px}.st.p{background:#3a2c0a;color:var(--warn)}.st.a{background:#0f2e1a;color:var(--ok)}.st.r{background:#3a1420;color:var(--bad)}
-.thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.thumbs img{width:76px;height:96px;object-fit:cover;border-radius:12px;border:1px solid var(--line)}.thumbs .add{width:76px;height:96px;border-radius:12px;border:1px dashed var(--ac);display:grid;place-items:center;color:var(--ac);font-weight:700;cursor:pointer}
-.bar{height:8px;background:#0f0b1a;border-radius:8px;overflow:hidden;margin:8px 0}.bar div{height:100%;background:linear-gradient(90deg,var(--ac2),#d8b4fe)}
+.nav button{flex:1;min-height:52px;border:0;background:none;color:var(--mu);padding:8px 4px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;transition:all .25s}.nav .on{background:#2a1850;color:#d8b4fe}
+.chip{display:inline-block;background:#2a1850;border:1px solid #5b34a0;border-radius:10px;padding:6px 10px;margin:4px 4px 0 0;font-weight:700;animation:pop .4s both}.chip i{cursor:pointer;color:var(--mu);margin-left:6px;font-style:normal}
+.st{font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px;white-space:nowrap}.st.p{background:#3a2c0a;color:var(--warn)}.st.a{background:#0f2e1a;color:var(--ok)}.st.r{background:#3a1420;color:var(--bad)}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.thumbs img{width:76px;height:96px;object-fit:cover;border-radius:12px;border:1px solid var(--line);animation:pop .4s both}.thumbs .add{width:76px;height:96px;border-radius:12px;border:1px dashed var(--ac);display:grid;place-items:center;color:var(--ac);font-weight:700;font-size:26px;cursor:pointer}
+.bar{height:8px;background:#0f0b1a;border-radius:8px;overflow:hidden;margin:8px 0}.bar div{height:100%;background:linear-gradient(90deg,var(--ac2),#d8b4fe);animation:grow 1.1s ease-out both}
 .steps{display:flex;gap:6px;margin:10px 0 16px}.steps div{flex:1;height:4px;border-radius:4px;background:var(--line)}.steps .on{background:var(--ac)}
 .lv{border:1px solid var(--line);border-radius:14px;padding:10px;text-align:center;font-size:12px;color:var(--mu)}.lv b{display:block;font-size:20px;color:var(--tx)}.lv.on{border-color:var(--ac);background:#2a185066}
 .empty{text-align:center;padding:26px 6px;color:var(--mu)}.empty b{display:block;color:var(--tx);font-size:17px;margin-bottom:4px}
-#toast{position:fixed;top:calc(14px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);background:#2a1850;border:1px solid var(--ac);padding:10px 16px;border-radius:14px;z-index:9;display:none;max-width:90%}
-.btn.bad[onclick^="db.me"]{display:none}
+#toast{position:fixed;top:calc(14px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);background:#2a1850;border:1px solid var(--ac);padding:10px 16px;border-radius:14px;z-index:9;display:none;max-width:90%;animation:tin .3s ease-out}
 .hr{border-top:1px solid var(--line);margin:10px 0}.adm{border-color:#5b34a0}
-.pwd-wrap{position:relative}.pwd-wrap input{padding-right:44px}.pwd-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:0;color:var(--mu);cursor:pointer;font-size:18px;padding:4px}
-.switch-row{display:flex;justify-content:space-between;align-items:center;margin-top:14px;gap:10px}.switch-row .txt{flex:1}.switch-row b{display:block;font-size:14px}.switch-row .mu{margin-top:2px}
-.switch{position:relative;width:48px;height:28px;flex-shrink:0}.switch input{opacity:0;width:0;height:0}.slider{position:absolute;cursor:pointer;inset:0;background:#333;border-radius:28px;transition:.3s}.slider:before{content:"";position:absolute;height:22px;width:22px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.3s}.switch input:checked+.slider{background:var(--ac)}.switch input:checked+.slider:before{transform:translateX(20px)}
+.pw{position:relative}.pw input{padding-right:48px}.pw button{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:40px;height:40px;background:none;border:0;color:var(--mu);cursor:pointer;font-size:18px}
+.sw{display:flex;justify-content:space-between;align-items:center;margin-top:16px;gap:12px}.sw b{display:block;font-size:14px}
+.switch{position:relative;width:48px;height:28px;flex-shrink:0;margin:0}.switch input{opacity:0;width:0;height:0;position:absolute}.sl{position:absolute;cursor:pointer;inset:0;background:#333;border-radius:28px;transition:.3s}.sl:before{content:"";position:absolute;height:22px;width:22px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.3s}.switch input:checked+.sl{background:var(--ac)}.switch input:checked+.sl:before{transform:translateX(20px)}
+.bdg{background:var(--ac);color:#fff;border-radius:10px;padding:1px 7px;font-size:12px;animation:ring 1.6s infinite}.fl{display:inline-block;animation:fl 3s ease-in-out infinite}
 @keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}@keyframes pop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}@keyframes glow{0%,100%{box-shadow:0 6px 18px #7c3aed55}50%{box-shadow:0 6px 30px #a855f7aa}}@keyframes grow{from{width:0}}@keyframes ring{0%{box-shadow:0 0 0 0 #a855f799}100%{box-shadow:0 0 0 12px #a855f700}}@keyframes tin{from{opacity:0;transform:translate(-50%,-14px)}to{opacity:1;transform:translate(-50%,0)}}@keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-#app.go>*{animation:up .5s cubic-bezier(.2,.8,.2,1) both}#app.go>*:nth-child(2){animation-delay:.06s}#app.go>*:nth-child(3){animation-delay:.12s}#app.go>*:nth-child(4){animation-delay:.18s}#app.go>*:nth-child(5){animation-delay:.24s}#app.go>*:nth-child(n+6){animation-delay:.3s}
-.card{transition:transform .2s,border-color .25s}.card:active{transform:scale(.985)}.btn{transition:transform .15s,filter .2s}.btn:active{transform:scale(.95)}.btn:not(:disabled):not(.sec):not(.bad){animation:glow 2.8s infinite}.nav button,.tabs button{transition:background .3s,color .3s}.nav .on{transform:translateY(-2px)}
-.chip,.thumbs img,.st{animation:pop .4s both}.bar div{animation:grow 1.1s ease-out both}#toast{animation:tin .3s ease-out}.bdg{background:var(--ac);color:#fff;border-radius:10px;padding:1px 7px;font-size:12px;animation:ring 1.6s infinite}.fl{display:inline-block;animation:fl 3s ease-in-out infinite}
+#app.go>*{animation:up .5s cubic-bezier(.2,.8,.2,1) both}#app.go>*:nth-child(2){animation-delay:.06s}#app.go>*:nth-child(3){animation-delay:.12s}#app.go>*:nth-child(4){animation-delay:.18s}#app.go>*:nth-child(n+5){animation-delay:.24s}
+.card{transition:transform .2s}.card:active{transform:scale(.99)}
 </style>
 </head>
 <body>
 <div id="toast"></div>
 <div id="app"></div>
 <script>
-const RATE=1.357,RUB=113.53;
-let db={users:{},reqs:[],wd:[],hist:[],admins:{},me:null,adm:null};
-try{db=Object.assign(db,JSON.parse(localStorage.getItem('mapp2')||'{}'))}catch(e){}
+const RATE=1.357,RUB=113.53,K='mapp3';
+const ADMIN_TG_IDS=[1383803958]; // Telegram ID админов — через запятую
+let db={users:{},reqs:[],wd:[],hist:[]};
+try{Object.assign(db,JSON.parse(localStorage.getItem(K)||'{}'))}catch(e){}
 
-// Получаем данные Telegram при запуске (для автоматической привязки при реге)
-let TG_USER = null;
-try {
-  const tg = window.Telegram && window.Telegram.WebApp;
-  if (tg) {
-    tg.ready(); tg.expand(); tg.setHeaderColor('#07050d'); tg.setBackgroundColor('#07050d');
-    if (tg.initDataUnsafe && tg.initDataUnsafe.user) TG_USER = tg.initDataUnsafe.user;
-  }
-} catch(e) {}
+let TG=null;
+try{const t=window.Telegram&&Telegram.WebApp;if(t){t.ready();t.expand();try{t.setHeaderColor('#07050d');t.setBackgroundColor('#07050d')}catch(e){}if(t.initDataUnsafe&&t.initDataUnsafe.user)TG=t.initDataUnsafe.user}}catch(e){}
 
-const SESS=()=>{try{return JSON.parse(localStorage.getItem('mapp2s')||sessionStorage.getItem('mapp2s')||'{}')}catch(e){return{}}};
-db.me=SESS().me||null;
-db.adm=SESS().adm||null;
-
-const save=(remember)=>{
- try{
-  const{me,adm,...r}=db;
-  localStorage.setItem('mapp2',JSON.stringify(r));
-  if(remember===false){
-   sessionStorage.setItem('mapp2s',JSON.stringify({me,adm}));
-   localStorage.removeItem('mapp2s');
-  }else{
-   localStorage.setItem('mapp2s',JSON.stringify({me,adm}));
-   sessionStorage.removeItem('mapp2s');
-  }
- }catch(e){}
-};
+const sess=()=>{try{return JSON.parse(localStorage.getItem(K+'s')||sessionStorage.getItem(K+'s')||'{}')}catch(e){return{}}};
+let cur=sess().me||null;
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(db))}catch(e){}};
+const setSess=(l,rem)=>{cur=l;try{localStorage.removeItem(K+'s');sessionStorage.removeItem(K+'s');if(l)(rem?localStorage:sessionStorage).setItem(K+'s',JSON.stringify({me:l}))}catch(e){}};
+if(!cur||!db.users[cur]){cur=null;if(TG){const f=Object.keys(db.users).find(k=>db.users[k].tgId===TG.id);if(f)setSess(f,true)}}
 
 const S={tab:'profile',sub:'req',mode:'login',wiz:null,cur:'GRAM'};
+const me=()=>db.users[cur];
+const isAdm=()=>!!(TG&&ADMIN_TG_IDS.includes(TG.id));
 const E=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const me=()=>db.users[db.me];
 const f2=n=>(+n).toFixed(2);
 const pct=u=>{const d=u.month*RATE;return d>=150?80:d>=75?75:70};
 const lvl=u=>({70:1,75:2,80:3}[pct(u)]);
-
-function toast(t){const e=document.getElementById('toast');e.textContent=t;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',2600)}
-async function hash(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('salt:'+s));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+const dt=()=>new Date().toLocaleDateString('ru',{day:'numeric',month:'short'});
 const $v=id=>(document.getElementById(id)||{}).value||'';
+const pc=()=>db.reqs.filter(r=>r.s=='p').length+db.wd.filter(w=>w.s=='p').length;
+const LOGIN_RE=/^[a-z0-9.\-]{3,}$/;
 
-// === ОБЫЧНЫЙ ВХОД / РЕГИСТРАЦИЯ ===
+function toast(t){const e=document.getElementById('toast');e.textContent=t;e.style.display='none';void e.offsetWidth;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',2600)}
+async function hash(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('salt:'+s));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+function togglePwd(id,b){const i=document.getElementById(id);if(!i)return;const h=i.type==='password';i.type=h?'text':'password';b.textContent=h?'🙈':'👁'}
+
+/* ---------- Регистрация и вход ---------- */
 async function auth(){
- const l=$v('l').trim().toLowerCase(),p=$v('p');
- if(!/^[a-z0-9.\-]{3,}$/.test(l))return toast('Логин: латиница, цифры, точка, дефис — от 3 символов');
- 
+ const l=$v('l').trim().toLowerCase(),p=$v('p'),rem=!!(document.getElementById('rem')||{}).checked;
+ if(!LOGIN_RE.test(l))return toast('Логин: латиница, цифры, точка, дефис — от 3 символов');
  if(S.mode=='reg'){
   if(p.length<8)return toast('Пароль — минимум 8 символов');
   if(p!==$v('p2'))return toast('Пароли не совпадают');
-  if(db.users[l])return toast('Логин занят');
-  
-  // Автоматическая привязка ТГ при регистрации (в фоне)
-  db.users[l] = {
-    pass: await hash(p),
-    nick: $v('n').trim() || l,
-    tgId: TG_USER ? TG_USER.id : null,
-    tgUser: TG_USER ? (TG_USER.username ? '@'+TG_USER.username : TG_USER.first_name) : 'Нет TG',
-    earned: 0, balance: 0, month: 0, withdrawn: 0, wallet: '', admin: false, start: Date.now()
-  };
- } else {
+  if(db.users[l])return toast('Этот логин уже занят');
+  db.users[l]={pass:await hash(p),nick:$v('n').trim()||l,tgId:TG?TG.id:null,tgUser:TG?(TG.username?'@'+TG.username:TG.first_name||''):'',earned:0,balance:0,month:0,withdrawn:0,wallet:'',start:Date.now()};
+  toast('Аккаунт создан');
+ }else{
   const u=db.users[l];
   if(!u||u.pass!==await hash(p))return toast('Неверный логин или пароль');
-  
-  // Если при входе у аккаунта нет привязки к ТГ, но он открыт в ТГ - привязываем
-  if (TG_USER && !u.tgId) {
-    u.tgId = TG_USER.id;
-    u.tgUser = TG_USER.username ? '@'+TG_USER.username : TG_USER.first_name;
-  }
+  if(TG&&!u.tgId){u.tgId=TG.id;u.tgUser=TG.username?'@'+TG.username:TG.first_name||''}
  }
- 
- db.me=l;db.adm=null;
- const remember = document.getElementById('remember') ? document.getElementById('remember').checked : true;
- save(remember);
- S.tab='profile';
- render();
+ save();setSess(l,rem);S.tab='profile';render();
 }
+function logout(){setSess(null,false);S.mode='login';render()}
 
+/* ---------- Отрисовка ---------- */
 function render(){
  const a=document.getElementById('app');
- const k=db.adm?'A'+S.at:!db.me?'u'+S.mode:S.wiz?'w'+S.wiz.step:S.tab;
+ const k=!cur?'u'+S.mode:S.wiz?'w'+S.wiz.step:S.tab;
  a.classList.toggle('go',render.k!==k);render.k=k;
- 
- // Шлюз: если есть активная сессия (db.me) - пропускаем, иначе показываем экран входа
- if(db.adm&&db.admins[db.adm]){a.innerHTML=admShell();return}
- if(!db.me||!me()){a.innerHTML=authV();return}
+ if(!cur||!me()){a.innerHTML=authV();return}
  if(S.wiz){a.innerHTML=wizV();return}
- 
- const u=me();
- let h=S.tab=='profile'?profV(u):S.tab=='top'?topV():S.tab=='admin'?admV():payV(u);
+ const u=me(),adm=isAdm();
+ const h=S.tab=='profile'?profV(u):S.tab=='top'?topV():S.tab=='admin'&&adm?admV():payV(u);
  a.innerHTML=h+`<div class="nav">
-   <button class="${S.tab=='profile'?'on':''}" onclick="go('profile')">👤<br>Профиль</button>
-   <button class="${S.tab=='top'?'on':''}" onclick="go('top')">🏆<br>Топ 5</button>
-   <button class="${S.tab=='pay'?'on':''}" onclick="go('pay')">💸<br>Выплаты</button>
-   ${u.admin?`<button class="${S.tab=='admin'?'on':''}" onclick="go('admin')">🛡<br>Админ</button>`:''}
+  <button class="${S.tab=='profile'?'on':''}" onclick="go('profile')">👤<br>Профиль</button>
+  <button class="${S.tab=='top'?'on':''}" onclick="go('top')">🏆<br>Топ 5</button>
+  <button class="${S.tab=='pay'?'on':''}" onclick="go('pay')">💸<br>Выплаты</button>
+  ${adm?`<button class="${S.tab=='admin'?'on':''}" onclick="go('admin')">🛡<br>Админ${pc()?' <span class="bdg">'+pc()+'</span>':''}</button>`:''}
  </div>`;
 }
 const go=t=>{S.tab=t;render()};
 
-// === ЭКРАН ВХОДА И РЕГИСТРАЦИИ ===
 function authV(){
- if(S.mode=='admin')return admAuthV();
  const r=S.mode=='reg';
- 
- return `<div style="text-align:center;padding-top:20px"><h1 style="letter-spacing:2px">НАЗВАНИЕ</h1><div class="mu">${r?'Создайте аккаунт за пару секунд':'Войдите в свой аккаунт'}</div></div>
+ return `<div style="text-align:center;padding-top:20px"><h1 style="letter-spacing:2px"><span class="fl">💜</span> НАЗВАНИЕ</h1><div class="mu">${r?'Создайте аккаунт за пару секунд':'Войдите в свой аккаунт'}</div></div>
 <div class="card" style="margin-top:18px">
- <div class="tabs">
-   <button class="${r?'':'on'}" onclick="S.mode='login';render()">Вход</button>
-   <button class="${r?'on':''}" onclick="S.mode='reg';render()">Регистрация</button>
- </div>
- 
- <label>Логин</label>
- <input id="l" placeholder="your.login" autocapitalize="off">
- 
- ${r?`
-   <div class="mu">Латиница, цифры, точка, дефис — от 3 символов</div>
-   <label>Никнейм</label>
-   <input id="n" placeholder="Необязательно">
-   <div class="mu">Виден в рейтинге. Если пусто — будет как логин</div>
- `:''}
- 
- <label>Пароль</label>
- <div class="pwd-wrap">
-  <input id="p" type="password" placeholder="••••••••">
-  <button class="pwd-toggle" type="button" onclick="togglePwd('p',this)">👁</button>
- </div>
- 
- ${r?`
-   <div class="mu">Минимум 8 символов</div>
-   <label>Повторите пароль</label>
-   <div class="pwd-wrap">
-     <input id="p2" type="password" placeholder="••••••••">
-     <button class="pwd-toggle" type="button" onclick="togglePwd('p2',this)">👁</button>
-   </div>
- `:''}
- 
- <div class="switch-row">
-  <div class="txt"><b>Запомнить эту Telegram-сессию</b><div class="mu">Пароль не понадобится при следующем входе</div></div>
-  <label class="switch"><input type="checkbox" id="remember" value="1" checked><span class="slider"></span></label>
- </div>
- 
- <div style="height:14px"></div>
- <button class="btn" onclick="auth()">${r?'Создать аккаунт':'Войти'}</button>
+ <div class="tabs"><button class="${r?'':'on'}" onclick="S.mode='login';render()">Вход</button><button class="${r?'on':''}" onclick="S.mode='reg';render()">Регистрация</button></div>
+ <label class="l">Логин</label><input id="l" placeholder="your.login" autocapitalize="off" autocomplete="off">
+ ${r?`<div class="mu" style="margin-top:4px">Латиница, цифры, точка, дефис — от 3 символов</div><label class="l">Никнейм</label><input id="n" placeholder="Необязательно"><div class="mu" style="margin-top:4px">Виден в рейтинге. Если пусто — будет как логин</div>`:''}
+ <label class="l">Пароль</label><div class="pw"><input id="p" type="password" placeholder="••••••••"><button type="button" onclick="togglePwd('p',this)">👁</button></div>
+ ${r?`<div class="mu" style="margin-top:4px">Минимум 8 символов</div><label class="l">Повторите пароль</label><div class="pw"><input id="p2" type="password" placeholder="••••••••"><button type="button" onclick="togglePwd('p2',this)">👁</button></div>`:''}
+ <div class="sw"><div><b>Запомнить эту Telegram-сессию</b><div class="mu">Пароль не понадобится при следующем входе</div></div><label class="switch"><input type="checkbox" id="rem" checked><span class="sl"></span></label></div>
+ <div style="height:16px"></div><button class="btn" onclick="auth()">${r?'Создать аккаунт':'Войти'}</button>
 </div>
-<div class="card mu" style="display:flex;gap:10px;align-items:flex-start"><span style="color:var(--ac);font-size:18px">🛡</span><div><b style="color:var(--tx)">Полная анонимность.</b> Не нужны телефон и e-mail. Пароль хранится только в виде необратимого хэша.</div></div>
-<button class="btn sec" onclick="S.mode='admin';render()">🛡 Вход для администраторов</button>`;
-}
-
-function togglePwd(id,btn){
- const i=document.getElementById(id);
- if(!i)return;
- if(i.type==='password'){i.type='text';btn.textContent='🙈'}else{i.type='password';btn.textContent='👁'}
+<div class="card mu"><b style="color:var(--tx)">🛡 Полная анонимность.</b> Не нужны телефон и e-mail. Пароль хранится только в виде необратимого хэша.</div>`;
 }
 
 function profV(u){
  const p=pct(u),d=u.month*RATE,nx=p==70?75:p==75?150:null,to=p==70?75:150,w=nx?Math.min(100,d/to*100):100;
+ const rank=u.earned?'#'+(Object.values(db.users).sort((a,b)=>b.earned-a.earned).indexOf(u)+1):'—';
  return `<div class="card">
  <div class="row sb"><div><div class="mu">Уровень этого месяца</div><div class="big">LVL ${lvl(u)}</div></div><div style="text-align:right"><div class="mu">Ваш процент</div><div class="big ac">${p}%</div></div></div>
- <div class="row sb mu"><span><b style="color:var(--tx)">$${f2(d)}</b> / $${to}</span><span>${nx?'ещё $'+f2(to-d)+' до '+(p==70?75:80)+'%':'максимум'}</span></div>
+ <div class="row sb mu" style="margin-top:8px"><span><b style="color:var(--tx)">$${f2(d)}</b> / $${to}</span><span>${nx?'ещё $'+f2(to-d)+' до '+(p==70?75:80)+'%':'максимум'}</span></div>
  <div class="bar"><div style="width:${w}%"></div></div>
- <div class="g" style="grid-template-columns:repeat(3,1fr)"><div class="lv ${p==70?'on':''}"><b>70%</b>LVL 1</div><div class="lv ${p==75?'on':''}"><b>75%</b>от $75</div><div class="lv ${p==80?'on':''}"><b>80%</b>от $150</div></div>
- </div>
- <div class="g">
- <div class="card" onclick="go('pay')"><div class="mu">Баланс</div><div style="font-size:26px;font-weight:800">${f2(u.balance)} <small class="ac" style="font-size:12px">GRAM</small></div><div class="mu">≈ ${f2(u.balance*RATE)} USDT</div></div>
- <div class="card"><div class="mu">Рейтинг</div><div style="font-size:26px;font-weight:800">${u.earned?'#'+(Object.values(db.users).sort((a,b)=>b.earned-a.earned).indexOf(u)+1):'—'}</div><div class="mu">${u.earned?'по заработку':'после первого заработка'}</div></div>
- </div>
+ <div class="g" style="grid-template-columns:repeat(3,1fr)"><div class="lv ${p==70?'on':''}"><b>70%</b>LVL 1</div><div class="lv ${p==75?'on':''}"><b>75%</b>от $75</div><div class="lv ${p==80?'on':''}"><b>80%</b>от $150</div></div></div>
+ <div class="g"><div class="card" onclick="go('pay')"><div class="mu">Баланс</div><div style="font-size:26px;font-weight:800">${f2(u.balance)} <small class="ac" style="font-size:12px">GRAM</small></div><div class="mu">≈ ${f2(u.balance*RATE)} USDT</div></div>
+ <div class="card"><div class="mu">Рейтинг</div><div style="font-size:26px;font-weight:800">${rank}</div><div class="mu">${u.earned?'по заработку':'после первого заработка'}</div></div></div>
  <div class="card row sb"><div><div class="mu">ЗАРАБОТАНО ВСЕГО</div><b>${f2(u.earned)} GRAM</b></div><div style="text-align:right"><div class="mu">ВЫВЕДЕНО</div><b>${f2(u.withdrawn)} GRAM</b></div></div>
- <div class="card"><div class="mu">GRAM WALLET</div><b>${u.wallet?'Кошелёк привязан':'Кошелёк не привязан'}</b><div class="mu">${u.wallet?E(u.wallet):'Нужен для получения выплат в GRAM'}</div><div style="height:10px"></div><button class="btn" onclick="wallet()">${u.wallet?'Изменить кошелёк':'+ Привязать кошелёк'}</button></div>
- <div class="mu" style="text-align:center">1 GRAM ≈ ${RATE} USDT ≈ ${RUB} ₽</div><div style="height:12px"></div><button class="btn bad" onclick="db.me=null;save(false);render()">Выйти из аккаунта</button>`;
+ <div class="card"><div class="mu">GRAM WALLET</div><b>${u.wallet?'Кошелёк привязан':'Кошелёк не привязан'}</b><div class="mu">${u.wallet?E(u.wallet):'Нужен для получения выплат в GRAM'}</div><div style="height:10px"></div><button class="btn" onclick="wallet()">${u.wallet?'Изменить кошелёк':'＋ Привязать кошелёк'}</button></div>
+ <div class="mu" style="text-align:center">1 GRAM ≈ ${RATE} USDT ≈ ${RUB} ₽</div><div style="height:12px"></div><button class="btn bad" onclick="logout()">Выйти из аккаунта</button>`;
 }
-
 function wallet(){const w=prompt('Адрес GRAM-кошелька');if(w&&w.trim().length>5){me().wallet=w.trim();save();render();toast('Кошелёк сохранён')}}
 
 function topV(){
@@ -224,119 +149,61 @@ function topV(){
 }
 
 function payV(u){
- const inw=db.wd.filter(w=>w.u==db.me&&w.s=='p').reduce((a,w)=>a+w.a,0),m=db.reqs.filter(r=>r.u==db.me).reverse(),
- hd=db.wd.filter(w=>w.u==db.me).reverse(),hi=db.hist.filter(x=>x.u==db.me).reverse(),pend=m.filter(r=>r.s=='p').length,rub=S.cur=='RUB',k=v=>rub?f2(v*RUB):f2(v);
+ const inw=db.wd.filter(w=>w.u==cur&&w.s=='p').reduce((a,w)=>a+w.a,0),m=db.reqs.filter(r=>r.u==cur).reverse(),
+ hd=db.wd.filter(w=>w.u==cur).reverse(),hi=db.hist.filter(x=>x.u==cur).reverse(),pend=m.filter(r=>r.s=='p').length,rub=S.cur=='RUB',k=v=>rub?f2(v*RUB):f2(v);
  let body;
- if(S.sub=='req') body=m.length?m.map(r=>`<div class="card"><div class="row sb"><div><b>Заявка #${r.id}</b><div class="mu">${r.d} · ${r.ids.length} работ</div></div><span class="st ${r.s}">${{p:'На проверке',a:'Принята',r:'Отклонена'}[r.s]}</span></div>
+ if(S.sub=='req')body=m.length?m.map(r=>`<div class="card"><div class="row sb"><div><b>Заявка #${r.id}</b><div class="mu">${r.d} · ${r.ids.length} работ</div></div><span class="st ${r.s}">${{p:'На проверке',a:'Принята',r:'Отклонена'}[r.s]}</span></div>
  <div class="hr"></div><div class="mu">ID РАБОТ</div>${r.ids.map(i=>`<span class="chip">#${E(i)}</span>`).join('')}<div class="thumbs">${r.shots.map(s=>`<img src="${s}">`).join('')}</div>${r.links.map(l=>`<div class="mu" style="margin-top:6px">🎁 ${E(l)}</div>`).join('')}
- ${r.s=='a'?`<div class="hr"></div><b class="ac">+${f2(r.share)} GRAM</b> <span class="mu">(${r.p}% от ${f2(r.amt)})</span>`:r.s=='r'?`<div class="hr"></div><div class="mu">${E(r.note||'Без комментария')}</div>`:'<div class="hr"></div><div class="mu">🕒 Администратор проверяет работу и назначит сумму.</div>'}</div>`).join(''):'<div class="card empty"><b>Заявок пока нет</b>Сделали работу? Отправьте её ID и скриншоты — администратор назначит сумму.</div>';
- else if(S.sub=='wd') body=hd.length?hd.map(w=>`<div class="card row sb"><div><b>${f2(w.a)} GRAM</b><div class="mu">${w.d}</div></div><span class="st ${w.s=='p'?'p':'a'}">${w.s=='p'?'В обработке':'Выплачено'}</span></div>`).join(''):'<div class="card empty"><b>Выводов пока не было</b>Когда на балансе появятся GRAM, выведите их на свой кошелёк.</div>';
+ <div class="hr"></div>${r.s=='a'?`<b class="ac">+${f2(r.share)} GRAM</b> <span class="mu">(${r.p}% от ${f2(r.amt)})</span>`:r.s=='r'?`<div class="mu">${E(r.note||'Без комментария')}</div>`:'<div class="mu">🕒 Администратор проверяет работу и назначит сумму.</div>'}</div>`).join(''):'<div class="card empty"><b>Заявок пока нет</b>Сделали работу? Отправьте её ID и скриншоты — администратор назначит сумму.</div>';
+ else if(S.sub=='wd')body=hd.length?hd.map(w=>`<div class="card row sb"><div><b>${f2(w.a)} GRAM</b><div class="mu">${w.d}</div></div><span class="st ${w.s=='p'?'p':'a'}">${w.s=='p'?'В обработке':'Выплачено'}</span></div>`).join(''):'<div class="card empty"><b>Выводов пока не было</b>Когда на балансе появятся GRAM, выведите их на свой кошелёк.</div>';
  else body=hi.length?hi.map(x=>`<div class="card row sb"><div><b>${E(x.t)}</b><div class="mu">${x.d}</div></div><b class="${x.a>0?'ac':''}">${x.a>0?'+':''}${f2(x.a)}</b></div>`).join(''):'<div class="card empty"><b>История пуста</b>Здесь появятся зачисления и выводы.</div>';
-
  return `<h1>Выплаты</h1><div class="card"><div class="row sb"><span class="mu">Баланс</span><div class="tabs" style="margin:0;padding:3px"><button class="${rub?'':'on'}" onclick="S.cur='GRAM';render()">GRAM</button><button class="${rub?'on':''}" onclick="S.cur='RUB';render()">₽</button></div></div>
- <div class="big">${k(u.balance)} <small>${rub?'₽':'GRAM'}</small></div><div class="mu">≈ ${f2(u.balance*RATE)} USDT</div><div class="g" style="margin:12px 0"><div class="card" style="margin:0;padding:12px"><div class="mu">В выводе</div><b>${k(inw)}</b></div><div class="card" style="margin:0;padding:12px"><div class="mu">Выведено всего</div><b>${k(u.withdrawn)}</b></div></div>
- <div class="g"><button class="btn" onclick="startWiz()">＋ Работа</button><button class="btn sec" onclick="withdraw()" ${u.balance>0&&u.wallet?'':'disabled'}>↑ Вывести</button></div><div class="mu" style="text-align:center;margin-top:10px">Отправьте ID работ и скриншоты — после проверки ваша доля придёт сюда</div></div>
- ${u.wallet?'':'<div class="card" style="padding:12px;cursor:pointer;border-color:#5b34a0" onclick="wallet()">👛 Привяжите GRAM-кошелёк, чтобы выводить баланс ›</div>'}
+ <div class="big">${k(u.balance)} <small>${rub?'₽':'GRAM'}</small></div><div class="mu">≈ ${f2(u.balance*RATE)} USDT</div>
+ <div class="g" style="margin:12px 0"><div class="card" style="margin:0;padding:12px"><div class="mu">В выводе</div><b>${k(inw)}</b></div><div class="card" style="margin:0;padding:12px"><div class="mu">Выведено всего</div><b>${k(u.withdrawn)}</b></div></div>
+ <div class="g"><button class="btn" onclick="startWiz()">＋ Работа</button><button class="btn sec" onclick="withdraw()" ${u.balance>0&&u.wallet?'':'disabled'}>↑ Вывести</button></div>
+ <div class="mu" style="text-align:center;margin-top:10px">Отправьте ID работ и скриншоты — после проверки ваша доля придёт сюда</div></div>
+ ${u.wallet?'':'<div class="card" style="padding:14px;cursor:pointer;border-color:#5b34a0" onclick="wallet()">👛 Привяжите GRAM-кошелёк, чтобы выводить баланс ›</div>'}
  <div class="tabs"><button class="${S.sub=='req'?'on':''}" onclick="S.sub='req';render()">Заявки${pend?' ('+pend+')':''}</button><button class="${S.sub=='wd'?'on':''}" onclick="S.sub='wd';render()">Выводы</button><button class="${S.sub=='hist'?'on':''}" onclick="S.sub='hist';render()">История</button></div>${body}`;
 }
-
-const dt=()=>new Date().toLocaleDateString('ru',{day:'numeric',month:'short'});
 function withdraw(){const u=me(),a=parseFloat(prompt('Сумма вывода, GRAM (доступно '+f2(u.balance)+')','')||0);if(!(a>0)||a>u.balance)return toast('Неверная сумма');
- u.balance-=a;db.wd.push({id:Date.now(),u:db.me,a,s:'p',d:dt()});db.hist.push({u:db.me,t:'Вывод',a:-a,d:dt()});save();S.sub='wd';render();toast('Заявка на вывод создана')}
+ u.balance-=a;db.wd.push({id:Date.now(),u:cur,a,s:'p',d:dt()});db.hist.push({u:cur,t:'Вывод',a:-a,d:dt()});save();S.sub='wd';render();toast('Заявка на вывод создана')}
 
+/* ---------- Мастер заявки ---------- */
 function startWiz(){S.wiz={step:1,ids:[],shots:[],links:[],comment:''};render()}
+const w2=d=>{S.wiz.step+=d};
 function wizV(){
- const w=S.wiz,u=me(),h=(t,b,btn)=>`<div class="row"><button class="btn sec sm" onclick="${w.step==1?'S.wiz=null':'w2(-1)'};render()">${w.step==1?'✕':'‹'}</button><span class="mu" style="flex:1;text-align:center">Шаг ${w.step} из 3</span><span style="width:50px"></span></div><div class="steps">${[1,2,3].map(i=>`<div class="${i<=w.step?'on':''}"></div>`).join('')}</div><h1>${t}</h1>${b}<div style="position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));width:min(448px,calc(100% - 32px))">${btn}</div>`;
- 
- if(w.step==1)return h('ID работ',`<div class="mu" style="margin-bottom:10px">Укажите ID работ, которые хотите сдать. Сумму назначит администратор после проверки.</div><div class="card"><div class="row"><input id="ii" placeholder="# ID работы, например 10432"><button class="btn sec sm" onclick="addId()">Добавить</button></div><div class="mu" style="margin-top:6px">Можно вставить сразу несколько ID через пробел, запятую или с новой строки</div>${w.ids.map((x,i)=>`<span class="chip">#${E(x)}<i onclick="S.wiz.ids.splice(${i},1);render()">✕</i></span>`).join('')}</div><div class="card mu">✨ Сейчас ваш процент — <b class="ac">${pct(u)}%</b> (LVL ${lvl(u)}).</div>`,`<button class="btn" ${w.ids.length?'':'disabled'} onclick="w2(1);render()">${w.ids.length?'Далее':'Добавьте хотя бы один ID'}</button>`);
- 
- if(w.step==2)return h('Подтверждение',`<div class="card"><div class="row sb"><b>Скриншоты</b><span class="mu">${w.shots.length}/8</span></div><div class="mu">Предоставление доказательства</div><div class="thumbs">${w.shots.map((s,i)=>`<img src="${s}" onclick="S.wiz.shots.splice(${i},1);render()">`).join('')}${w.shots.length<8?'<label class="add" style="margin:0">＋<input type="file" accept="image/*" multiple hidden onchange="addShots(this)"></label>':''}</div><div class="mu" style="margin-top:6px">Нажмите на скриншот, чтобы удалить</div></div>
- <div class="card"><div class="row sb"><b>Ссылки на подарки</b><span class="mu">${w.links.length}</span></div><div class="mu">Минимум одна · например, t.me/nft/PlushPepe-1024</div><div class="row" style="margin-top:8px"><input id="li" placeholder="Вставьте ссылку"><button class="btn sec sm" onclick="addLink()">Добавить</button></div>${w.links.map((x,i)=>`<div class="row sb" style="margin-top:8px">🎁 <span style="flex:1;overflow:hidden;text-overflow:ellipsis">${E(x)}</span><i onclick="S.wiz.links.splice(${i},1);render()" style="cursor:pointer">🗑</i></div>`).join('')}</div>
- <div class="card"><b>Комментарий</b><textarea rows="3" placeholder="Необязательно — что важно знать администратору" oninput="S.wiz.comment=this.value">${E(w.comment)}</textarea></div>`,`<button class="btn" ${w.shots.length&&w.links.length?'':'disabled'} onclick="w2(1);render()">${!w.shots.length?'Приложите хотя бы один скриншот':!w.links.length?'Добавьте ссылку на подарок':'Далее'}</button>`);
- 
+ const w=S.wiz,u=me(),h=(t,b,btn)=>`<div class="row"><button class="btn sec sm" onclick="${w.step==1?'S.wiz=null':'w2(-1)'};render()">${w.step==1?'✕':'‹'}</button><span class="mu" style="flex:1;text-align:center">Шаг ${w.step} из 3</span><span style="width:48px"></span></div><div class="steps">${[1,2,3].map(i=>`<div class="${i<=w.step?'on':''}"></div>`).join('')}</div><h1>${t}</h1>${b}<div style="position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));width:min(448px,calc(100% - 32px))">${btn}</div>`;
+ if(w.step==1)return h('ID работ',`<div class="mu" style="margin-bottom:10px">Укажите ID работ, которые хотите сдать. Сумму назначит администратор после проверки.</div><div class="card"><div class="row"><input id="ii" placeholder="# ID работы, например 10432"><button class="btn sec sm" onclick="addId()">Добавить</button></div><div class="mu" style="margin-top:8px">Можно вставить сразу несколько ID через пробел, запятую или с новой строки</div>${w.ids.map((x,i)=>`<span class="chip">#${E(x)}<i onclick="S.wiz.ids.splice(${i},1);render()">✕</i></span>`).join('')}</div><div class="card mu">✨ Сейчас ваш процент — <b class="ac">${pct(u)}%</b> (LVL ${lvl(u)}).</div>`,`<button class="btn" ${w.ids.length?'':'disabled'} onclick="w2(1);render()">${w.ids.length?'Далее':'Добавьте хотя бы один ID'}</button>`);
+ if(w.step==2)return h('Подтверждение',`<div class="card"><div class="row sb"><b>Скриншоты</b><span class="mu">${w.shots.length}/8</span></div><div class="mu">Предоставление доказательства</div><div class="thumbs">${w.shots.map((s,i)=>`<img src="${s}" onclick="S.wiz.shots.splice(${i},1);render()">`).join('')}${w.shots.length<8?'<label class="add">＋<input type="file" accept="image/*" multiple hidden onchange="addShots(this)"></label>':''}</div><div class="mu" style="margin-top:8px">Нажмите на скриншот, чтобы удалить</div></div>
+ <div class="card"><div class="row sb"><b>Ссылки на подарки</b><span class="mu">${w.links.length}</span></div><div class="mu">Минимум одна · например, t.me/nft/PlushPepe-1024</div><div class="row" style="margin-top:10px"><input id="li" placeholder="Вставьте ссылку"><button class="btn sec sm" onclick="addLink()">Добавить</button></div>${w.links.map((x,i)=>`<div class="row sb" style="margin-top:10px"><span style="flex:1;overflow:hidden;text-overflow:ellipsis">🎁 ${E(x)}</span><button class="btn sec sm" style="min-height:36px;padding:6px 10px" onclick="S.wiz.links.splice(${i},1);render()">🗑</button></div>`).join('')}</div>
+ <div class="card"><b>Комментарий</b><textarea rows="3" style="margin-top:8px" placeholder="Необязательно — что важно знать администратору" oninput="S.wiz.comment=this.value">${E(w.comment)}</textarea></div>`,`<button class="btn" ${w.shots.length&&w.links.length?'':'disabled'} onclick="w2(1);render()">${!w.shots.length?'Приложите хотя бы один скриншот':!w.links.length?'Добавьте ссылку на подарок':'Далее'}</button>`);
  return h('Проверка заявки',`<div class="card"><div class="row sb"><span class="mu">Работ</span><b>${w.ids.length}</b></div><div class="hr"></div><div class="row sb"><span class="mu">Скриншотов</span><b>${w.shots.length}</b></div><div class="hr"></div><div class="row sb"><span class="mu">Ссылок на подарки</span><b>${w.links.length}</b></div><div class="hr"></div><div class="row sb"><span class="mu">Ваш процент</span><b class="ac">${pct(u)}% · LVL ${lvl(u)}</b></div></div><div class="card"><div class="mu">ID РАБОТ</div>${w.ids.map(x=>`<span class="chip">#${E(x)}</span>`).join('')}</div><div class="card mu">Администратор проверит работу, назначит сумму, и ваша доля сразу придёт на баланс.</div>`,`<button class="btn" onclick="sendReq()">↑ Отправить заявку</button>`);
 }
-const w2=d=>{S.wiz.step+=d};
-function addId(){const v=$v('ii');v.split(/[\s,;]+/).map(x=>x.replace(/^#/,'').trim()).filter(Boolean).forEach(x=>{if(!S.wiz.ids.includes(x))S.wiz.ids.push(x)});render()}
+function addId(){$v('ii').split(/[\s,;]+/).map(x=>x.replace(/^#/,'').trim()).filter(Boolean).forEach(x=>{if(!S.wiz.ids.includes(x))S.wiz.ids.push(x)});render()}
 function addLink(){const v=$v('li').trim();if(!/t\.me\/nft\/\S+/i.test(v))return toast('Нужна ссылка вида t.me/nft/Name-123');S.wiz.links.push(v.replace(/^https?:\/\//,''));render()}
 function addShots(inp){const fs=[...inp.files].slice(0,8-S.wiz.shots.length);let n=0;fs.forEach(f=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas'),k=Math.min(1,300/im.width);c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);S.wiz.shots.push(c.toDataURL('image/jpeg',.6));if(++n==fs.length)render()};im.src=r.result};r.readAsDataURL(f)})}
-function sendReq(){
- const w=S.wiz,id=200+db.reqs.length;
- db.reqs.push({id,u:db.me,ids:w.ids,shots:w.shots,links:w.links,comment:w.comment,s:'p',d:dt(),p:pct(me())});
- save();S.wiz=null;S.tab='pay';S.sub='req';render();
- toast('Заявка #'+id+' отправлена на проверку');
- try{localStorage.setItem('mapp2_ping',Date.now().toString())}catch(e){}
-}
+function sendReq(){const w=S.wiz,id=200+db.reqs.length;
+ db.reqs.push({id,u:cur,ids:w.ids,shots:w.shots,links:w.links,comment:w.comment,s:'p',d:dt(),p:pct(me())});
+ save();S.wiz=null;S.tab='pay';S.sub='req';render();toast('Заявка #'+id+' отправлена на проверку')}
 
-// === АДМИНКА ===
+/* ---------- Админ-панель (доступ по Telegram ID) ---------- */
 function admV(){
- const P=db.reqs.filter(r=>r.s=='p'),W=db.wd.filter(w=>w.s=='p');
- return `<h1>Админ-панель</h1><h2>Заявки на проверке (${P.length})</h2>`+(P.length?P.map(r=>{
-   const userInfo = db.users[r.u];
-   const tgInfo = userInfo && userInfo.tgUser ? `(${E(userInfo.tgUser)})` : '';
-   return `<div class="card adm">
-     <div class="row sb"><b>Заявка #${r.id}</b><span class="mu">${E(userInfo.nick)} ${tgInfo} · ${r.p}%</span></div>
-     <div class="mu">${r.d}</div>
-     ${r.ids.map(i=>`<span class="chip">#${E(i)}</span>`).join('')}
-     <div class="thumbs">${r.shots.map(s=>`<img src="${s}">`).join('')}</div>
-     ${r.links.map(l=>`<div class="mu" style="margin-top:6px">🎁 ${E(l)}</div>`).join('')}
-     ${r.comment?`<div class="card mu" style="margin:8px 0 0;padding:10px">💬 ${E(r.comment)}</div>`:''}
-     <label>Сумма работы, GRAM</label>
-     <input id="a${r.id}" type="number" step="0.01" placeholder="например 10">
-     <div class="g" style="margin-top:10px"><button class="btn" onclick="appr(${r.id})">✓ Принять</button><button class="btn bad" onclick="rej(${r.id})">✕ Отклонить</button></div>
-   </div>`;
- }).join(''):'<div class="card empty"><b>Нет новых заявок</b></div>')+
- `<h2>Выводы (${W.length})</h2>`+(W.length?W.map(w=>{
-   const userInfo = db.users[w.u];
-   const tgInfo = userInfo && userInfo.tgUser ? `(${E(userInfo.tgUser)})` : '';
-   return `<div class="card adm row sb">
-     <div><b>${f2(w.a)} GRAM</b><div class="mu">${E(userInfo.nick)} ${tgInfo}<br>${E(userInfo.wallet)}</div></div>
-     <button class="btn sm" onclick="paid(${w.id})">Выплачено</button>
-   </div>`;
- }).join(''):'<div class="card empty"><b>Нет заявок на вывод</b></div>');
+ const P=db.reqs.filter(r=>r.s=='p'),W=db.wd.filter(w=>w.s=='p'),who=u=>u?E(u.nick)+(u.tgUser?' ('+E(u.tgUser)+')':''):'—';
+ return `<h1>Админ-панель</h1><h2>Заявки на проверке (${P.length})</h2>`+(P.length?P.map(r=>`<div class="card adm"><div class="row sb"><b>Заявка #${r.id}</b><span class="mu">${who(db.users[r.u])} · ${r.p}%</span></div><div class="mu">${r.d}</div>${r.ids.map(i=>`<span class="chip">#${E(i)}</span>`).join('')}<div class="thumbs">${r.shots.map(s=>`<img src="${s}">`).join('')}</div>${r.links.map(l=>`<div class="mu" style="margin-top:6px">🎁 ${E(l)}</div>`).join('')}${r.comment?`<div class="card mu" style="margin:8px 0 0;padding:10px">💬 ${E(r.comment)}</div>`:''}
+ <label class="l">Сумма работы, GRAM</label><input id="a${r.id}" type="number" step="0.01" placeholder="например 10"><div class="g" style="margin-top:10px"><button class="btn" onclick="appr(${r.id})">✓ Принять</button><button class="btn bad" onclick="rej(${r.id})">✕ Отклонить</button></div></div>`).join(''):'<div class="card empty"><b>Нет новых заявок</b></div>')+
+ `<h2>Выводы (${W.length})</h2>`+(W.length?W.map(w=>{const u=db.users[w.u];return `<div class="card adm row sb"><div><b>${f2(w.a)} GRAM</b><div class="mu">${who(u)}<br>${E(u?u.wallet:'')}</div></div><button class="btn sm" onclick="paid(${w.id})">Выплачено</button></div>`}).join(''):'<div class="card empty"><b>Нет заявок на вывод</b></div>');
 }
-
-function appr(id){const r=db.reqs.find(x=>x.id==id),a=parseFloat($v('a'+id));if(!(a>0))return toast('Укажите сумму');const u=db.users[r.u],p=pct(u),sh=a*p/100;
+function appr(id){const r=db.reqs.find(x=>x.id==id),a=parseFloat($v('a'+id));if(!r||!(a>0))return toast('Укажите сумму');const u=db.users[r.u],p=pct(u),sh=a*p/100;
  Object.assign(r,{s:'a',amt:a,p,share:sh});u.balance+=sh;u.earned+=sh;u.month+=sh;db.hist.push({u:r.u,t:'Заявка #'+id,a:sh,d:dt()});save();render();toast('Принято: +'+f2(sh)+' GRAM пользователю')}
-function rej(id){const n=prompt('Причина отклонения (необязательно)')||'';const r=db.reqs.find(x=>x.id==id);r.s='r';r.note=n;save();render()}
+function rej(id){const n=prompt('Причина отклонения (необязательно)')||'',r=db.reqs.find(x=>x.id==id);r.s='r';r.note=n;save();render()}
 function paid(id){const w=db.wd.find(x=>x.id==id);w.s='d';db.users[w.u].withdrawn+=w.a;save();render()}
 
-const LOGIN_RE=/^[a-z0-9.\-]{3,}$/;
-function admAuthV(){const f=!Object.keys(db.admins).length;return `<div style="text-align:center;padding-top:20px"><h1><span class="fl">🛡</span> Админ-вход</h1><div class="mu">${f?'Первичная настройка: создайте первого администратора':'Только для администраторов'}</div></div>
-<div class="card" style="margin-top:18px">
-<label>Логин</label><input id="al" autocapitalize="off">
-<label>Пароль</label><div class="pwd-wrap"><input id="ap" type="password"><button class="pwd-toggle" type="button" onclick="togglePwd('ap',this)">👁</button></div>
-${f?'<label>Повторите пароль</label><div class="pwd-wrap"><input id="ap2" type="password"><button class="pwd-toggle" type="button" onclick="togglePwd(\'ap2\',this)">👁</button></div>':''}
-<div style="height:14px"></div><button class="btn" onclick="admAuth()">${f?'Создать и войти':'Войти'}</button></div>
-<button class="btn sec" onclick="S.mode='login';render()">← Назад</button>`}
-
-async function admAuth(){const l=$v('al').trim().toLowerCase(),p=$v('ap'),f=!Object.keys(db.admins).length;if(!LOGIN_RE.test(l))return toast('Логин: латиница, цифры, точка, дефис — от 3 символов');
- if(f){if(p.length<8)return toast('Пароль — минимум 8 символов');if(p!==$v('ap2'))return toast('Пароли не совпадают');db.admins[l]={pass:await hash(p)}}
- else{const a=db.admins[l];if(!a||a.pass!==await hash(p))return toast('Неверные данные')}
- db.adm=l;db.me=null;S.at='q';save(true);render()}
-
-function admShell(){const n=db.reqs.filter(r=>r.s=='p').length+db.wd.filter(w=>w.s=='p').length,t=S.at||'q';return `<div class="row sb"><b>🛡 ${E(db.adm)}</b><button class="btn bad sm" onclick="db.adm=null;save(false);S.mode='admin';render()">Выйти</button></div><div class="tabs"><button class="${t=='q'?'on':''}" onclick="S.at='q';render()">Заявки${n?' <span class="bdg">'+n+'</span>':''}</button><button class="${t=='a'?'on':''}" onclick="S.at='a';render()">Админы</button></div>`+(t=='a'?admsV():admV())}
-
-function admsV(){return `<h2>Администраторы</h2>`+Object.keys(db.admins).map(k=>`<div class="card row sb"><b>${E(k)}</b>${k==db.adm?'<span class="mu">это вы</span>':`<button class="btn bad sm" onclick="delAdm('${E(k)}')">Удалить</button>`}</div>`).join('')+`<div class="card"><b>Добавить администратора</b><label>Логин</label><input id="nl" autocapitalize="off"><label>Пароль</label><div class="pwd-wrap"><input id="np" type="password" placeholder="минимум 8 символов"><button class="pwd-toggle" type="button" onclick="togglePwd('np',this)">👁</button></div><div style="height:12px"></div><button class="btn" onclick="addAdm()">Добавить</button></div>`}
-
-async function addAdm(){const l=$v('nl').trim().toLowerCase(),p=$v('np');if(!LOGIN_RE.test(l)||p.length<8)return toast('Логин от 3, пароль от 8 символов');if(db.admins[l])return toast('Такой админ уже есть');db.admins[l]={pass:await hash(p)};save();render();toast('Администратор добавлен')}
-function delAdm(k){delete db.admins[k];save();render()}
-const pc=()=>db.reqs.filter(r=>r.s=='p').length+db.wd.filter(w=>w.s=='p').length;
-
-// --- СИНХРОНИЗАЦИЯ И УВЕДОМЛЕНИЯ ---
+/* ---------- Синхронизация вкладок (демо на одном устройстве) ---------- */
 addEventListener('storage',e=>{
- if(e.key=='mapp2_ping'){
-   if(db.adm){toast('🔔 Новая заявка на проверку!');try{navigator.vibrate(80)}catch(x){};render()}
-   return;
- }
- if(e.key!='mapp2'||!e.newValue)return;
- const o=pc();
- try{const j=JSON.parse(e.newValue);db=Object.assign(db,{users:j.users,reqs:j.reqs,wd:j.wd,hist:j.hist,admins:j.admins})}catch(x){return}
- if(db.adm&&pc()>o){
-   toast('🔔 Новая заявка на проверку');try{navigator.vibrate(80)}catch(x){}render()
- }else if(!S.wiz&&!(document.activeElement&&document.activeElement.matches('input,textarea'))){
-   render()
- }
+ if(e.key!==K||!e.newValue)return;const o=pc();
+ try{const j=JSON.parse(e.newValue);db.users=j.users||{};db.reqs=j.reqs||[];db.wd=j.wd||[];db.hist=j.hist||[]}catch(x){return}
+ if(isAdm()&&pc()>o){toast('🔔 Новая заявка на проверку');try{navigator.vibrate(80)}catch(x){}render()}
+ else if(!S.wiz&&!(document.activeElement&&document.activeElement.matches('input,textarea')))render();
 });
 
 render();
