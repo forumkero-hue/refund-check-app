@@ -37,11 +37,11 @@ def jl(r):
 
 bot = Bot(TOKEN); dp = Dispatcher(); app = FastAPI()
 
-# Разрешаем запросы с любых доменов (нужно для GitHub Pages)
+# ВАЖНО: allow_credentials=False, иначе браузер блокирует запросы с '*' origin
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False, 
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -61,7 +61,7 @@ def auth(init: str) -> dict:
     ex("INSERT OR IGNORE INTO users(id,nick) VALUES(?,?)", u["id"], u.get("username") or u.get("first_name") or "user")
     return u
 
-# Исправлено: теперь сервер ищет заголовок 'x-init-data', как отправляет сайт
+# Сайт отправляет заголовок 'x-init-data', поэтому используем alias
 def user(x_init_data: str = Header("", alias="x-init-data")): 
     return auth(x_init_data)
 
