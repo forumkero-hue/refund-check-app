@@ -8,23 +8,19 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart, Command
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo, BufferedInputFile
 import uvicorn
-import re, secrets
-
 try:
     from dotenv import load_dotenv
-    load_dotenv()
+    load_dotenv()  # читает файл .env рядом с bot.py
 except ImportError:
     pass
 
 TOKEN = os.environ["BOT_TOKEN"]
-URL = os.environ.get("WEBAPP_URL") or ("https://" + os.environ.get("RAILWAY_PUBLIC_DOMAIN", "localhost"))
+URL = os.environ.get("WEBAPP_URL") or ("https://" + os.environ.get("RAILWAY_PUBLIC_DOMAIN", "localhost"))  # на Railway берётся сам
 ADMINS = {int(x) for x in os.environ.get("ADMIN_IDS", "").split(",") if x.strip()}
-RATE = 1.357
+RATE = 1.357  # 1 GRAM в USDT
 
-# --- ID ЧАТА ДЛЯ ЛОГОВ (КУДА ПРИХОДИТ ПРОФИТ) ---
-# Впиши сюда ID канала или группы, куда бот должен слать уведомления о профите.
-# Например: LOG_CHAT_ID = -1001234567890
-LOG_CHAT_ID = int(os.environ.get("LOG_CHAT_ID", "0")) 
+# ID канала/группы, куда бот шлёт уведомления о профите (переменная LOG_CHAT_ID)
+LOG_CHAT_ID = int(os.environ.get("LOG_CHAT_ID", "0"))
 
 db = sqlite3.connect(os.getenv("DB_PATH", "data.db"), check_same_thread=False)
 db.row_factory = sqlite3.Row
@@ -32,9 +28,10 @@ db.executescript("""
 CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY,nick TEXT,wallet TEXT DEFAULT '',balance REAL DEFAULT 0,earned REAL DEFAULT 0,withdrawn REAL DEFAULT 0,login TEXT,pass TEXT);
 CREATE TABLE IF NOT EXISTS reqs(id INTEGER PRIMARY KEY AUTOINCREMENT,uid INT,ids TEXT,shots TEXT,links TEXT,comment TEXT,status TEXT DEFAULT 'p',amt REAL,pct INT,share REAL,note TEXT,ts INT);
 CREATE TABLE IF NOT EXISTS wd(id INTEGER PRIMARY KEY AUTOINCREMENT,uid INT,amt REAL,status TEXT DEFAULT 'p',ts INT);
+CREATE TABLE IF NOT EXISTS links(tg INTEGER PRIMARY KEY,acc INTEGER);
 CREATE TABLE IF NOT EXISTS hist(id INTEGER PRIMARY KEY AUTOINCREMENT,uid INT,title TEXT,amt REAL,ts INT);
 """)
-for _c in ("login", "pass"):
+for _c in ("login", "pass"):  # миграция старой базы
     try: db.execute(f"ALTER TABLE users ADD COLUMN {_c} TEXT")
     except sqlite3.OperationalError: pass
 
@@ -46,7 +43,7 @@ def jl(r):
     return r
 
 bot = Bot(TOKEN); dp = Dispatcher(); app = FastAPI()
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=False, allow_methods=["*"], allow_headers=["*"])
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=False, allow_methods=["*"], allow_headers=["*"])  # фронтенд может лежать на GitHub Pages
 
 async def tell(uid, text):
     try: await bot.send_message(uid, text)
@@ -60,12 +57,16 @@ def auth(init: str) -> dict:
     if not ok or time.time() - int(d.get("auth_date", 0)) > 86400 or "user" not in d:
         raise HTTPException(401, "bad initData")
     u = json.loads(d["user"])
-    ex("INSERT OR IGNORE INTO users(id,nick) VALUES(?,?)", u["id"], u.get("username") or u.get("first_name") or "user")
+    tg = u["id"]
+    l = q("SELECT acc FROM links WHERE tg=?", tg)
+    acc = l[0]["acc"] if l else tg  # аккаунт, к которому привязан этот Telegram
+    ex("INSERT OR IGNORE INTO users(id,nick) VALUES(?,?)", acc, u.get("username") or u.get("first_name") or "user")
+    u["tg"] = tg; u["id"] = acc
     return u
 
 def user(x_init_data: str = Header("")): return auth(x_init_data)
 def admin(u=Depends(user)):
-    if u["id"] not in ADMINS: raise HTTPException(403)
+    if u["tg"] not in ADMINS: raise HTTPException(403)  # админ — по Telegram ID  # роль только по Telegram ID
     return u
 
 def pct(uid):
@@ -73,6 +74,8 @@ def pct(uid):
     m = q("SELECT COALESCE(SUM(share),0) s FROM reqs WHERE uid=? AND status='a' AND ts>=?", uid, ms)[0]["s"]
     d = m * RATE
     return (80 if d >= 150 else 75 if d >= 75 else 70), m
+
+import re, secrets
 
 def reg(u=Depends(user)):
     if not q("SELECT 1 FROM users WHERE id=? AND login IS NOT NULL", u["id"]): raise HTTPException(403, "register first")
@@ -92,10 +95,30 @@ def register(b: dict = Body(...), u=Depends(user)):
     ex("UPDATE users SET login=?,pass=?,nick=? WHERE id=?", login, pw_hash(pw), nick, u["id"])
     return {"ok": 1}
 
+fails = {}
+
+@app.post("/api/login")
+def login(b: dict = Body(...), u=Depends(user)):
+    if q("SELECT 1 FROM users WHERE id=? AND login IS NOT NULL", u["id"]): raise HTTPException(400, "already registered")
+    now = time.time(); f = [t for t in fails.get(u["tg"], []) if now - t < 600]
+    if len(f) >= 8: raise HTTPException(429, "too many attempts")
+    lg = str(b.get("login", "")).strip().lower(); pw = str(b.get("password", ""))
+    row = q("SELECT id,pass FROM users WHERE login=?", lg)
+    ok = False
+    if row and row[0]["pass"]:
+        salt, h = row[0]["pass"].split("$", 1)
+        ok = hmac.compare_digest(hashlib.pbkdf2_hmac("sha256", pw.encode(), salt.encode(), 100000).hex(), h)
+    if not ok:
+        f.append(now); fails[u["tg"]] = f
+        raise HTTPException(401, "bad login")
+    ex("DELETE FROM users WHERE id=? AND login IS NULL AND balance=0 AND earned=0", u["id"])
+    ex("INSERT OR REPLACE INTO links(tg,acc) VALUES(?,?)", u["tg"], row[0]["id"])
+    return {"ok": 1}
+
 @app.get("/api/me")
 def me(u=Depends(user)):
     p, m = pct(u["id"]); row = q("SELECT * FROM users WHERE id=?", u["id"])[0]
-    return dict(user={k: v for k, v in row.items() if k != "pass"} | dict(month=m, pct=p), registered=bool(row["login"]), admin=u["id"] in ADMINS,
+    return dict(user={k: v for k, v in row.items() if k != "pass"} | dict(month=m, pct=p), registered=bool(row["login"]), admin=u["tg"] in ADMINS,
         reqs=[jl(r) for r in q("SELECT * FROM reqs WHERE uid=? ORDER BY id", u["id"])],
         wd=q("SELECT * FROM wd WHERE uid=? ORDER BY id", u["id"]),
         hist=q("SELECT * FROM hist WHERE uid=? ORDER BY id", u["id"]),
@@ -149,11 +172,8 @@ async def approve(b: dict = Body(...), a=Depends(admin)):
     ex("UPDATE reqs SET status='a',amt=?,pct=?,share=? WHERE id=?", amt, p, sh, r["id"])
     ex("UPDATE users SET balance=balance+?,earned=earned+? WHERE id=?", sh, sh, r["uid"])
     ex("INSERT INTO hist(uid,title,amt,ts) VALUES(?,?,?,?)", r["uid"], f"Заявка #{r['id']}", sh, int(time.time()))
-    
-    # Отправляем пользователю
     await tell(r["uid"], f"✅ Заявка #{r['id']} принята: +{sh} GRAM ({p}% от {amt})")
 
-    # Отправляем лог в указанный чат (Профит)
     if LOG_CHAT_ID:
         user_nick = q("SELECT nick FROM users WHERE id=?", r["uid"])[0]["nick"]
         usd = sh * RATE
@@ -166,7 +186,6 @@ async def approve(b: dict = Body(...), a=Depends(admin)):
             await bot.send_message(LOG_CHAT_ID, log_text, parse_mode="HTML")
         except Exception as e:
             print(f"Ошибка отправки лога в чат {LOG_CHAT_ID}:", e)
-
     return {"ok": 1}
 
 @app.post("/api/admin/reject")
@@ -198,7 +217,7 @@ async def my_id(m: types.Message): await m.answer(f"Ваш Telegram ID: {m.from_
 async def up(): asyncio.create_task(dp.start_polling(bot))
 
 if os.path.isdir("webapp"):
-    app.mount("/", StaticFiles(directory="webapp", html=True))
+    app.mount("/", StaticFiles(directory="webapp", html=True))  # можно отдавать мини-апп и отсюда
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))
