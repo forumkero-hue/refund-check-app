@@ -48,6 +48,16 @@ const RATE=1.357,RUB=113.53;
 let db={users:{},reqs:[],wd:[],hist:[],admins:{},me:null,adm:null};
 try{db=Object.assign(db,JSON.parse(localStorage.getItem('mapp2')||'{}'))}catch(e){}
 
+// Получаем данные Telegram при запуске
+let TG_USER = null;
+try {
+  const tg = window.Telegram && window.Telegram.WebApp;
+  if (tg) {
+    tg.ready(); tg.expand(); tg.setHeaderColor('#07050d'); tg.setBackgroundColor('#07050d');
+    if (tg.initDataUnsafe && tg.initDataUnsafe.user) TG_USER = tg.initDataUnsafe.user;
+  }
+} catch(e) {}
+
 const SESS=()=>{try{return JSON.parse(localStorage.getItem('mapp2s')||sessionStorage.getItem('mapp2s')||'{}')}catch(e){return{}}};
 db.me=SESS().me||null;
 db.adm=SESS().adm||null;
@@ -85,10 +95,24 @@ async function auth(){
   if(p.length<8)return toast('Пароль — минимум 8 символов');
   if(p!==$v('p2'))return toast('Пароли не совпадают');
   if(db.users[l])return toast('Логин занят');
-  db.users[l]={pass:await hash(p),nick:$v('n').trim()||l,earned:0,balance:0,month:0,withdrawn:0,wallet:'',admin:false,start:Date.now()};
+  
+  // Сохраняем пользователя вместе с его Telegram ID и username
+  db.users[l] = {
+    pass: await hash(p),
+    nick: $v('n').trim() || l,
+    tgId: TG_USER ? TG_USER.id : null,
+    tgUser: TG_USER ? (TG_USER.username ? '@'+TG_USER.username : TG_USER.first_name) : 'Нет TG',
+    earned: 0, balance: 0, month: 0, withdrawn: 0, wallet: '', admin: false, start: Date.now()
+  };
  } else {
   const u=db.users[l];
   if(!u||u.pass!==await hash(p))return toast('Неверный логин или пароль');
+  
+  // Если при входе у аккаунта нет привязки к ТГ, но он открыт в ТГ - привязываем
+  if (TG_USER && !u.tgId) {
+    u.tgId = TG_USER.id;
+    u.tgUser = TG_USER.username ? '@'+TG_USER.username : TG_USER.first_name;
+  }
  }
  
  db.me=l;db.adm=null;
@@ -172,6 +196,7 @@ function togglePwd(id,btn){
  if(i.type==='password'){i.type='text';btn.textContent='🙈'}else{i.type='password';btn.textContent='👁'}
 }
 
+// === ПРОФИЛЬ ===
 function profV(u){
  const p=pct(u),d=u.month*RATE,nx=p==70?75:p==75?150:null,to=p==70?75:150,w=nx?Math.min(100,d/to*100):100;
  return `<div class="card">
@@ -196,6 +221,7 @@ function topV(){
  return `<h1>Топ 5</h1>`+(t.length?t.map((x,i)=>`<div class="card row sb"><div class="row"><b class="ac" style="font-size:22px">${i+1}</b><b>${E(x.nick)}</b></div><b>${f2(x.earned)} GRAM</b></div>`).join(''):'<div class="card empty"><b>Пока пусто</b>Рейтинг появится после первых выплат.</div>');
 }
 
+// === ВЫПЛАТЫ ===
 function payV(u){
  const inw=db.wd.filter(w=>w.u==db.me&&w.s=='p').reduce((a,w)=>a+w.a,0),m=db.reqs.filter(r=>r.u==db.me).reverse(),
  hd=db.wd.filter(w=>w.u==db.me).reverse(),hi=db.hist.filter(x=>x.u==db.me).reverse(),pend=m.filter(r=>r.s=='p').length,rub=S.cur=='RUB',k=v=>rub?f2(v*RUB):f2(v);
@@ -241,18 +267,43 @@ function sendReq(){
  try{localStorage.setItem('mapp2_ping',Date.now().toString())}catch(e){}
 }
 
+// === АДМИНКА ===
 function admV(){
  const P=db.reqs.filter(r=>r.s=='p'),W=db.wd.filter(w=>w.s=='p');
- return `<h1>Админ-панель</h1><h2>Заявки на проверке (${P.length})</h2>`+(P.length?P.map(r=>`<div class="card adm"><div class="row sb"><b>Заявка #${r.id}</b><span class="mu">${E(db.users[r.u].nick)} · ${r.p}%</span></div><div class="mu">${r.d}</div>${r.ids.map(i=>`<span class="chip">#${E(i)}</span>`).join('')}<div class="thumbs">${r.shots.map(s=>`<img src="${s}">`).join('')}</div>${r.links.map(l=>`<div class="mu" style="margin-top:6px">🎁 ${E(l)}</div>`).join('')}${r.comment?`<div class="card mu" style="margin:8px 0 0;padding:10px">💬 ${E(r.comment)}</div>`:''}
-<label>Сумма работы, GRAM</label><input id="a${r.id}" type="number" step="0.01" placeholder="например 10"><div class="g" style="margin-top:10px"><button class="btn" onclick="appr(${r.id})">✓ Принять</button><button class="btn bad" onclick="rej(${r.id})">✕ Отклонить</button></div></div>`).join(''):'<div class="card empty"><b>Нет новых заявок</b></div>')+
- `<h2>Выводы (${W.length})</h2>`+(W.length?W.map(w=>`<div class="card adm row sb"><div><b>${f2(w.a)} GRAM</b><div class="mu">${E(db.users[w.u].nick)}<br>${E(db.users[w.u].wallet)}</div></div><button class="btn sm" onclick="paid(${w.id})">Выплачено</button></div>`).join(''):'<div class="card empty"><b>Нет заявок на вывод</b></div>');
+ return `<h1>Админ-панель</h1><h2>Заявки на проверке (${P.length})</h2>`+(P.length?P.map(r=>{
+   // Показываем кто отправил, включая Telegram username
+   const userInfo = db.users[r.u];
+   const tgInfo = userInfo && userInfo.tgUser ? `(${E(userInfo.tgUser)})` : '';
+   
+   return `<div class="card adm">
+     <div class="row sb"><b>Заявка #${r.id}</b><span class="mu">${E(userInfo.nick)} ${tgInfo} · ${r.p}%</span></div>
+     <div class="mu">${r.d}</div>
+     ${r.ids.map(i=>`<span class="chip">#${E(i)}</span>`).join('')}
+     <div class="thumbs">${r.shots.map(s=>`<img src="${s}">`).join('')}</div>
+     ${r.links.map(l=>`<div class="mu" style="margin-top:6px">🎁 ${E(l)}</div>`).join('')}
+     ${r.comment?`<div class="card mu" style="margin:8px 0 0;padding:10px">💬 ${E(r.comment)}</div>`:''}
+     <label>Сумма работы, GRAM</label>
+     <input id="a${r.id}" type="number" step="0.01" placeholder="например 10">
+     <div class="g" style="margin-top:10px"><button class="btn" onclick="appr(${r.id})">✓ Принять</button><button class="btn bad" onclick="rej(${r.id})">✕ Отклонить</button></div>
+   </div>`;
+ }).join(''):'<div class="card empty"><b>Нет новых заявок</b></div>')+
+ `<h2>Выводы (${W.length})</h2>`+(W.length?W.map(w=>{
+   const userInfo = db.users[w.u];
+   const tgInfo = userInfo && userInfo.tgUser ? `(${E(userInfo.tgUser)})` : '';
+   
+   return `<div class="card adm row sb">
+     <div><b>${f2(w.a)} GRAM</b><div class="mu">${E(userInfo.nick)} ${tgInfo}<br>${E(userInfo.wallet)}</div></div>
+     <button class="btn sm" onclick="paid(${w.id})">Выплачено</button>
+   </div>`;
+ }).join(''):'<div class="card empty"><b>Нет заявок на вывод</b></div>');
 }
+
 function appr(id){const r=db.reqs.find(x=>x.id==id),a=parseFloat($v('a'+id));if(!(a>0))return toast('Укажите сумму');const u=db.users[r.u],p=pct(u),sh=a*p/100;
  Object.assign(r,{s:'a',amt:a,p,share:sh});u.balance+=sh;u.earned+=sh;u.month+=sh;db.hist.push({u:r.u,t:'Заявка #'+id,a:sh,d:dt()});save();render();toast('Принято: +'+f2(sh)+' GRAM пользователю')}
 function rej(id){const n=prompt('Причина отклонения (необязательно)')||'';const r=db.reqs.find(x=>x.id==id);r.s='r';r.note=n;save();render()}
 function paid(id){const w=db.wd.find(x=>x.id==id);w.s='d';db.users[w.u].withdrawn+=w.a;save();render()}
-const LOGIN_RE=/^[a-z0-9.\-]{3,}$/;
 
+const LOGIN_RE=/^[a-z0-9.\-]{3,}$/;
 function admAuthV(){const f=!Object.keys(db.admins).length;return `<div style="text-align:center;padding-top:20px"><h1><span class="fl">🛡</span> Админ-вход</h1><div class="mu">${f?'Первичная настройка: создайте первого администратора':'Только для администраторов'}</div></div>
 <div class="card" style="margin-top:18px">
 <label>Логин</label><input id="al" autocapitalize="off">
@@ -290,10 +341,6 @@ addEventListener('storage',e=>{
  }
 });
 
-// --- БАЗОВАЯ НАСТРОЙКА TELEGRAM ---
-try{const tg=window.Telegram&&Telegram.WebApp;if(tg){tg.ready();tg.expand();tg.setHeaderColor('#07050d');tg.setBackgroundColor('#07050d')}}catch(e){}
-
-// ВНИМАНИЕ: АВТОВХОД УДАЛЕН. Приложение всегда будет просить логин/пароль при первом запуске.
 render();
 </script>
 </body>
