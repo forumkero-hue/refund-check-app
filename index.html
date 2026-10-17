@@ -21,37 +21,9 @@ button{font-family:inherit;touch-action:manipulation;-webkit-tap-highlight-color
 input,textarea{width:100%;background:#0f0b1a;border:1px solid var(--line);border-radius:12px;padding:13px;color:var(--tx);font:inherit;outline:0;min-width:0}input:focus,textarea:focus{border-color:var(--ac)}
 label.l{display:block;font-weight:600;font-size:13px;margin:12px 0 5px}
 .tabs{display:flex;background:#0f0b1a;border:1px solid var(--line);border-radius:16px;padding:4px;margin:12px 0}.tabs button{flex:1;min-height:42px;border:0;background:none;color:var(--mu);padding:8px;border-radius:12px;font-weight:700;cursor:pointer;transition:background .3s,color .3s}.tabs .on{background:linear-gradient(180deg,#b86cff,var(--ac2));color:#fff}
-
-/* ИСПРАВЛЕНА НИЖНЯЯ НАВИГАЦИЯ */
-.nav{
-  position:fixed;
-  left:50%;
-  transform:translateX(-50%);
-  bottom:calc(14px + env(safe-area-inset-bottom,0px));
-  display:flex;
-  gap:4px;
-  background:#100c1c;
-  border:1px solid var(--line);
-  border-radius:26px;
-  padding:6px;
-  width:calc(100% - 28px);
-  max-width:440px;
-  z-index:50;
-}
-.nav button{flex:1;min-height:52px;border:0;background:none;color:var(--mu);padding:8px 4px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;transition:all .25s;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.nav .on{background:#2a1850;color:#d8b4fe}
-
-/* ИСПРАВЛЕНЫ ПЛАВАЮЩИЕ КНОПКИ В МАСТЕРЕ */
-.fx{
-  position:fixed;
-  left:50%;
-  transform:translateX(-50%);
-  bottom:calc(16px + env(safe-area-inset-bottom,0px));
-  width:calc(100% - 32px);
-  max-width:448px;
-  z-index:50;
-}
-
+.nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;gap:4px;background:#100c1c;border:1px solid var(--line);border-radius:26px;padding:6px;width:calc(100% - 28px);max-width:440px;z-index:50;}
+.nav button{flex:1;min-height:52px;border:0;background:none;color:var(--mu);padding:8px 4px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;transition:all .25s;display:flex;flex-direction:column;align-items:center;justify-content:center}.nav .on{background:#2a1850;color:#d8b4fe}
+.fx{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));width:calc(100% - 32px);max-width:448px;z-index:50;}
 .chip{display:inline-block;background:#2a1850;border:1px solid #5b34a0;border-radius:10px;padding:6px 10px;margin:4px 4px 0 0;font-weight:700;animation:pop .4s both}.chip i{cursor:pointer;color:var(--mu);margin-left:6px;font-style:normal}
 .st{font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px;white-space:nowrap}.st.p{background:#3a2c0a;color:var(--warn)}.st.a{background:#0f2e1a;color:var(--ok)}.st.r{background:#3a1420;color:var(--bad)}
 .thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.thumbs img{width:76px;height:96px;object-fit:cover;border-radius:12px;border:1px solid var(--line);animation:pop .4s both}.thumbs .add{width:76px;height:96px;border-radius:12px;border:1px dashed var(--ac);display:grid;place-items:center;color:var(--ac);font-weight:700;font-size:26px;cursor:pointer}
@@ -209,9 +181,42 @@ function wizV(){
 function addId(){$v('ii').split(/[\s,;]+/).map(x=>x.replace(/^#/,'').trim()).filter(Boolean).forEach(x=>{if(!S.wiz.ids.includes(x))S.wiz.ids.push(x)});render()}
 function addLink(){const v=$v('li').trim();if(!/t\.me\/nft\/\S+/i.test(v))return toast('Нужна ссылка вида t.me/nft/Name-123');S.wiz.links.push(v.replace(/^https?:\/\//,''));render()}
 function addShots(inp){const fs=[...inp.files].slice(0,8-S.wiz.shots.length);let n=0;fs.forEach(f=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas'),k=Math.min(1,300/im.width);c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);S.wiz.shots.push(c.toDataURL('image/jpeg',.6));if(++n==fs.length)render()};im.src=r.result};r.readAsDataURL(f)})}
-function sendReq(){const w=S.wiz,id=200+db.reqs.length;
- db.reqs.push({id,u:cur,ids:w.ids,shots:w.shots,links:w.links,comment:w.comment,s:'p',d:dt(),p:pct(me())});
- save();S.wiz=null;S.tab='pay';S.sub='req';render();toast('Заявка #'+id+' отправлена на проверку')}
+
+async function sendReq(){
+  const w=S.wiz;
+  const payload = {
+    ids: w.ids,
+    links: w.links,
+    shots: w.shots,
+    comment: w.comment
+  };
+
+  try {
+    // Отправляем напрямую в твой FastAPI на Railway
+    const res = await fetch('https://refund-check-app-production.up.railway.app/api/requests', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // Передаем initData, если открыто в Telegram (для проверки ботом)
+        'x-init-data': (window.Telegram && Telegram.WebApp) ? Telegram.WebApp.initData : ''
+      },
+      body: JSON.stringify(payload)
+    });
+    
+    if (!res.ok) throw new Error('Ошибка сети');
+    const data = await res.json();
+
+    // Сохраняем локально для истории
+    const id = data.id || (200 + db.reqs.length);
+    db.reqs.push({id, u:cur, ids:w.ids, shots:w.shots, links:w.links, comment:w.comment, s:'p', d:dt(), p:pct(me())});
+    save(); S.wiz=null; S.tab='pay'; S.sub='req'; render();
+    toast('Заявка #'+id+' отправлена на проверку');
+    
+  } catch (e) {
+    console.error(e);
+    toast('Ошибка отправки. Проверьте соединение.');
+  }
+}
 
 function admV(){
  const P=db.reqs.filter(r=>r.s=='p'),W=db.wd.filter(w=>w.s=='p'),who=u=>u?E(u.nick)+(u.tgUser?' ('+E(u.tgUser)+')':''):'—';
