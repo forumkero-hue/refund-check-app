@@ -120,35 +120,9 @@ const pc=()=>db.reqs.filter(r=>r.s=='p').length+db.wd.filter(w=>w.s=='p').length
 addEventListener('storage',e=>{if(e.key!='mapp2'||!e.newValue)return;const o=pc();try{const j=JSON.parse(e.newValue);db=Object.assign(db,{users:j.users,reqs:j.reqs,wd:j.wd,hist:j.hist,admins:j.admins})}catch(x){return}
  if(db.adm&&pc()>o){toast('🔔 Новая заявка на проверку');try{navigator.vibrate(80)}catch(x){}render()}else if(!S.wiz&&!(document.activeElement&&document.activeElement.matches('input,textarea')))render()});
 try{const tg=window.Telegram&&Telegram.WebApp;if(tg){tg.ready();tg.expand();tg.setHeaderColor('#07050d');tg.setBackgroundColor('#07050d')}}catch(e){}
-/* ===== Подключение к серверу (вместо localStorage-демо) ===== */
-db.me=null;db.adm=null;
-const API=async(p,b)=>{const r=await fetch('/api/'+p,{method:b?'POST':'GET',headers:{'Content-Type':'application/json','X-Init-Data':(window.Telegram&&Telegram.WebApp.initData)||''},body:b?JSON.stringify(b):undefined});if(!r.ok)throw new Error(r.status);return r.json()};
-const D=ts=>new Date(ts*1000).toLocaleDateString('ru',{day:'numeric',month:'short'});
-const mp=r=>({id:r.id,u:String(r.uid),ids:r.ids,shots:r.shots,links:r.links,comment:r.comment,s:r.status,d:D(r.ts),p:r.pct,amt:r.amt,share:r.share,note:r.note});
-const blank=n=>({nick:n,earned:0,month:0,balance:0,withdrawn:0,wallet:''});
-let firstSync=true;
-function render(){const a=document.getElementById('app');if(!db.me||!me()){a.innerHTML='<div class="empty" style="padding-top:35vh"><b class="fl">💜</b>Загрузка…</div>';return}
- const k=S.wiz?'w'+S.wiz.step:S.tab;a.classList.toggle('go',render.k!==k);render.k=k;
- if(S.wiz){a.innerHTML=wizV();return}
- const u=me(),h=S.tab=='profile'?profV(u):S.tab=='top'?topV():S.tab=='admin'?admV():payV(u);
- a.innerHTML=h+`<div class="nav"><button class="${S.tab=='profile'?'on':''}" onclick="go('profile')">👤<br>Профиль</button><button class="${S.tab=='top'?'on':''}" onclick="go('top')">🏆<br>Топ 5</button><button class="${S.tab=='pay'?'on':''}" onclick="go('pay')">💸<br>Выплаты</button>${u.admin?`<button class="${S.tab=='admin'?'on':''}" onclick="go('admin')">🛡<br>Админ${pc()?' <span class="bdg">'+pc()+'</span>':''}</button>`:''}</div>`}
-async function sync(){try{const o=pc(),m=await API('me'),id=String(m.user.id);
- db.users={};m.top.forEach(t=>{if(String(t.id)!=id)db.users[t.id]=Object.assign(blank(t.nick),{earned:t.earned})});
- db.users[id]={nick:m.user.nick,balance:m.user.balance,earned:m.user.earned,month:m.user.month,withdrawn:m.user.withdrawn,wallet:m.user.wallet||'',admin:m.admin};
- let R=m.reqs.map(mp),W=m.wd.map(w=>({id:w.id,u:id,a:w.amt,s:w.status,d:D(w.ts)}));
- if(m.admin){const A=await API('admin'),ens=(uid,nick,wallet)=>Object.assign(db.users[uid]||(db.users[uid]=blank(nick)),{nick,wallet:wallet||db.users[uid].wallet||''});
-  A.reqs.forEach(r=>ens(r.uid,r.nick));A.wd.forEach(w=>ens(w.uid,w.nick,w.wallet));
-  R=R.filter(r=>r.s!='p').concat(A.reqs.map(mp));W=W.filter(w=>w.s!='p').concat(A.wd.map(w=>({id:w.id,u:String(w.uid),a:w.amt,s:w.status,d:D(w.ts)})))}
- db.reqs=R.sort((a,b)=>a.id-b.id);db.wd=W.sort((a,b)=>a.id-b.id);db.hist=m.hist.map(h=>({u:id,t:h.title,a:h.amt,d:D(h.ts)}));db.me=id;
- if(m.admin&&!firstSync&&pc()>o){toast('🔔 Новая заявка на проверку');try{navigator.vibrate(80)}catch(x){}}
- const busy=S.wiz||(document.activeElement&&document.activeElement.matches('input,textarea'));if(firstSync||!busy)render();firstSync=false}
- catch(e){if(!db.me)document.getElementById('app').innerHTML='<div class="empty" style="padding-top:30vh"><b>Нет связи с сервером бота</b>Код ошибки: '+e.message+'<br>Адрес страницы: '+location.origin+'<br>Он должен совпадать с адресом, где запущен bot.py.</div>'}}
-async function sendReq(){const w=S.wiz;try{const r=await API('requests',{ids:w.ids,links:w.links,shots:w.shots,comment:w.comment});S.wiz=null;S.tab='pay';S.sub='req';await sync();toast('Заявка #'+r.id+' отправлена на проверку')}catch(e){toast('Не удалось отправить заявку')}}
-async function wallet(){const w=prompt('Адрес GRAM-кошелька');if(w&&w.trim().length>5){try{await API('wallet',{wallet:w.trim()});await sync();toast('Кошелёк сохранён')}catch(e){toast('Ошибка')}}}
-async function withdraw(){const u=me(),a=parseFloat(prompt('Сумма вывода, GRAM (доступно '+f2(u.balance)+')','')||0);if(!(a>0)||a>u.balance)return toast('Неверная сумма');try{await API('withdraw',{amount:a});S.sub='wd';await sync();toast('Заявка на вывод создана')}catch(e){toast('Ошибка')}}
-async function appr(id){const a=parseFloat($v('a'+id));if(!(a>0))return toast('Укажите сумму');try{await API('admin/approve',{id,amount:a});await sync();toast('Заявка принята')}catch(e){toast('Ошибка')}}
-async function rej(id){const n=prompt('Причина отклонения (необязательно)')||'';try{await API('admin/reject',{id,note:n});await sync()}catch(e){toast('Ошибка')}}
-async function paid(id){try{await API('admin/paid',{id});await sync()}catch(e){toast('Ошибка')}}
-render();sync();setInterval(sync,8000);
-
+/* Автовход по Telegram-аккаунту (без логина и пароля). Админы — по Telegram ID */
+(function(){const ADMIN_IDS=[1383803958];const tg=window.Telegram&&Telegram.WebApp,tu=tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user;
+if(tu){const l='tg'+tu.id;if(!db.users[l])db.users[l]={pass:'',nick:tu.username||tu.first_name||l,earned:0,balance:0,month:0,withdrawn:0,wallet:'',admin:false,start:Date.now()};
+db.users[l].admin=ADMIN_IDS.includes(tu.id);db.me=l;db.adm=null;save()}})();
+render();
 </script></body></html>
