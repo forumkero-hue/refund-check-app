@@ -2,31 +2,34 @@ import os, hmac, hashlib, json, base64, sqlite3, time, asyncio
 from datetime import datetime, timezone
 from urllib.parse import parse_qsl
 from fastapi import FastAPI, Header, HTTPException, Body, Depends
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart, Command
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo, BufferedInputFile
 import uvicorn
-
 try:
     from dotenv import load_dotenv
-    load_dotenv()
+    load_dotenv()  # читает файл .env рядом с bot.py
 except ImportError:
     pass
 
 TOKEN = os.environ["BOT_TOKEN"]
-URL = os.environ["WEBAPP_URL"]
+URL = os.environ.get("WEBAPP_URL") or ("https://" + os.environ.get("RAILWAY_PUBLIC_DOMAIN", "localhost"))  # на Railway берётся сам
 ADMINS = {int(x) for x in os.environ.get("ADMIN_IDS", "").split(",") if x.strip()}
-RATE = 1.357
+RATE = 1.357  # 1 GRAM в USDT
 
 db = sqlite3.connect(os.getenv("DB_PATH", "data.db"), check_same_thread=False)
 db.row_factory = sqlite3.Row
 db.executescript("""
-CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY,nick TEXT,wallet TEXT DEFAULT '',balance REAL DEFAULT 0,earned REAL DEFAULT 0,withdrawn REAL DEFAULT 0);
+CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY,nick TEXT,wallet TEXT DEFAULT '',balance REAL DEFAULT 0,earned REAL DEFAULT 0,withdrawn REAL DEFAULT 0,login TEXT,pass TEXT);
 CREATE TABLE IF NOT EXISTS reqs(id INTEGER PRIMARY KEY AUTOINCREMENT,uid INT,ids TEXT,shots TEXT,links TEXT,comment TEXT,status TEXT DEFAULT 'p',amt REAL,pct INT,share REAL,note TEXT,ts INT);
 CREATE TABLE IF NOT EXISTS wd(id INTEGER PRIMARY KEY AUTOINCREMENT,uid INT,amt REAL,status TEXT DEFAULT 'p',ts INT);
 CREATE TABLE IF NOT EXISTS hist(id INTEGER PRIMARY KEY AUTOINCREMENT,uid INT,title TEXT,amt REAL,ts INT);
 """)
+for _c in ("login", "pass"):  # миграция старой базы
+    try: db.execute(f"ALTER TABLE users ADD COLUMN {_c} TEXT")
+    except sqlite3.OperationalError: pass
 
 def q(sql, *a): return [dict(r) for r in db.execute(sql, a).fetchall()]
 def ex(sql, *a):
@@ -36,22 +39,13 @@ def jl(r):
     return r
 
 bot = Bot(TOKEN); dp = Dispatcher(); app = FastAPI()
-
-# CORS для работы с GitHub Pages
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False, 
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=False, allow_methods=["*"], allow_headers=["*"])  # фронтенд может лежать на GitHub Pages
 
 async def tell(uid, text):
     try: await bot.send_message(uid, text)
     except Exception: pass
 
 def auth(init: str) -> dict:
-    if not init: raise HTTPException(401, "no initData")
     d = dict(parse_qsl(init)); h = d.pop("hash", "")
     chk = "\n".join(f"{k}={v}" for k, v in sorted(d.items()))
     sec = hmac.new(b"WebAppData", TOKEN.encode(), hashlib.sha256).digest()
@@ -62,8 +56,10 @@ def auth(init: str) -> dict:
     ex("INSERT OR IGNORE INTO users(id,nick) VALUES(?,?)", u["id"], u.get("username") or u.get("first_name") or "user")
     return u
 
-def user(x_init_data: str = Header("", alias="x-init-data")): 
-    return auth(x_init_data)
+def user(x_init_data: str = Header("")): return auth(x_init_data)
+def admin(u=Depends(user)):
+    if u["id"] not in ADMINS: raise HTTPException(403)  # роль только по Telegram ID
+    return u
 
 def pct(uid):
     ms = int(datetime.now(timezone.utc).replace(day=1, hour=0, minute=0, second=0, microsecond=0).timestamp())
@@ -71,50 +67,61 @@ def pct(uid):
     d = m * RATE
     return (80 if d >= 150 else 75 if d >= 75 else 70), m
 
+import re, secrets
+
+def reg(u=Depends(user)):
+    if not q("SELECT 1 FROM users WHERE id=? AND login IS NOT NULL", u["id"]): raise HTTPException(403, "register first")
+    return u
+
+def pw_hash(p):
+    salt = secrets.token_hex(8)
+    return salt + "$" + hashlib.pbkdf2_hmac("sha256", p.encode(), salt.encode(), 100000).hex()
+
+@app.post("/api/register")
+def register(b: dict = Body(...), u=Depends(user)):
+    login = str(b.get("login", "")).strip().lower(); pw = str(b.get("password", ""))
+    nick = str(b.get("nick", "")).strip()[:32] or login
+    if not re.fullmatch(r"[a-z0-9.\-]{3,32}", login) or len(pw) < 8: raise HTTPException(400, "bad data")
+    if q("SELECT 1 FROM users WHERE id=? AND login IS NOT NULL", u["id"]): raise HTTPException(400, "already registered")
+    if q("SELECT 1 FROM users WHERE login=?", login): raise HTTPException(409, "login taken")
+    ex("UPDATE users SET login=?,pass=?,nick=? WHERE id=?", login, pw_hash(pw), nick, u["id"])
+    return {"ok": 1}
+
 @app.get("/api/me")
 def me(u=Depends(user)):
     p, m = pct(u["id"]); row = q("SELECT * FROM users WHERE id=?", u["id"])[0]
-    return dict(user=dict(row, month=m, pct=p), admin=u["id"] in ADMINS,
+    return dict(user={k: v for k, v in row.items() if k != "pass"} | dict(month=m, pct=p), registered=bool(row["login"]), admin=u["id"] in ADMINS,
         reqs=[jl(r) for r in q("SELECT * FROM reqs WHERE uid=? ORDER BY id", u["id"])],
         wd=q("SELECT * FROM wd WHERE uid=? ORDER BY id", u["id"]),
         hist=q("SELECT * FROM hist WHERE uid=? ORDER BY id", u["id"]),
         top=q("SELECT id,nick,earned FROM users WHERE earned>0 ORDER BY earned DESC LIMIT 20"))
 
 @app.post("/api/requests")
-async def new_req(b: dict = Body(...), u=Depends(user)):
+async def new_req(b: dict = Body(...), u=Depends(reg)):
     ids = [str(x)[:40] for x in b.get("ids", [])][:50]
     links = [str(x)[:200] for x in b.get("links", [])][:20]
     shots = [s for s in b.get("shots", []) if str(s).startswith("data:image/")][:8]
     com = str(b.get("comment", ""))[:500]
-    
-    if not (ids and links and shots): 
-        raise HTTPException(400, "Не хватает данных: нужны ID, ссылки и скриншоты")
-        
+    if not (ids and links and shots): raise HTTPException(400)
     rid = ex("INSERT INTO reqs(uid,ids,shots,links,comment,ts) VALUES(?,?,?,?,?,?)",
              u["id"], json.dumps(ids), json.dumps(shots), json.dumps(links), com, int(time.time()))
-             
-    who = "@" + u["username"] if u.get("username") else u.get("first_name", "User")
+    who = "@" + u["username"] if u.get("username") else u.get("first_name", "")
     txt = f"🔔 Новая заявка #{rid}\n👤 {who}\n🆔 Работ: {len(ids)} ({', '.join(ids[:10])})\n🎁 " + "\n".join(links[:5]) + (f"\n💬 {com}" if com else "")
-    
     kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🛡 Открыть и проверить", web_app=WebAppInfo(url=URL))]])
     img = base64.b64decode(shots[0].split(",", 1)[1])
-    
     for a in ADMINS:
-        try: 
-            await bot.send_photo(a, BufferedInputFile(img, "shot.jpg"), caption=txt[:1000], reply_markup=kb)
-        except Exception as e: 
-            print(f"Ошибка отправки админу {a}:", e)
-            
+        try: await bot.send_photo(a, BufferedInputFile(img, "shot.jpg"), caption=txt[:1000], reply_markup=kb)
+        except Exception as e: print("notify fail", a, e)
     return {"id": rid}
 
 @app.post("/api/wallet")
-def wallet(b: dict = Body(...), u=Depends(user)):
+def wallet(b: dict = Body(...), u=Depends(reg)):
     w = str(b.get("wallet", "")).strip()[:100]
     if len(w) < 6: raise HTTPException(400)
     ex("UPDATE users SET wallet=? WHERE id=?", w, u["id"]); return {"ok": 1}
 
 @app.post("/api/withdraw")
-async def withdraw(b: dict = Body(...), u=Depends(user)):
+async def withdraw(b: dict = Body(...), u=Depends(reg)):
     amt = round(float(b.get("amount", 0)), 2); row = q("SELECT * FROM users WHERE id=?", u["id"])[0]
     if amt <= 0 or amt > row["balance"] or not row["wallet"]: raise HTTPException(400)
     ex("UPDATE users SET balance=balance-? WHERE id=?", amt, u["id"])
@@ -123,15 +130,14 @@ async def withdraw(b: dict = Body(...), u=Depends(user)):
     for a in ADMINS: await tell(a, f"💸 Заявка на вывод: {amt} GRAM от {row['nick']}\n{row['wallet']}")
     return {"ok": 1}
 
-# --- АДМИНКА (временно без проверки Depends, чтобы кнопки работали) ---
 @app.get("/api/admin")
-def adm():
+def adm(a=Depends(admin)):
     rs = [jl(r) for r in q("SELECT r.*,u.nick FROM reqs r JOIN users u ON u.id=r.uid WHERE r.status='p' ORDER BY r.id")]
     for r in rs: r["pct"] = pct(r["uid"])[0]
     return dict(reqs=rs, wd=q("SELECT w.*,u.nick,u.wallet FROM wd w JOIN users u ON u.id=w.uid WHERE w.status='p' ORDER BY w.id"))
 
 @app.post("/api/admin/approve")
-async def approve(b: dict = Body(...)):
+async def approve(b: dict = Body(...), a=Depends(admin)):
     r = q("SELECT * FROM reqs WHERE id=? AND status='p'", b.get("id")); amt = float(b.get("amount", 0))
     if not r or amt <= 0: raise HTTPException(400)
     r = r[0]; p, _ = pct(r["uid"]); sh = round(amt * p / 100, 2)
@@ -142,7 +148,7 @@ async def approve(b: dict = Body(...)):
     return {"ok": 1}
 
 @app.post("/api/admin/reject")
-async def reject(b: dict = Body(...)):
+async def reject(b: dict = Body(...), a=Depends(admin)):
     r = q("SELECT * FROM reqs WHERE id=? AND status='p'", b.get("id"))
     if not r: raise HTTPException(400)
     ex("UPDATE reqs SET status='r',note=? WHERE id=?", str(b.get("note", ""))[:300], r[0]["id"])
@@ -150,7 +156,7 @@ async def reject(b: dict = Body(...)):
     return {"ok": 1}
 
 @app.post("/api/admin/paid")
-async def paid(b: dict = Body(...)):
+async def paid(b: dict = Body(...), a=Depends(admin)):
     w = q("SELECT * FROM wd WHERE id=? AND status='p'", b.get("id"))
     if not w: raise HTTPException(400)
     ex("UPDATE wd SET status='d' WHERE id=?", w[0]["id"])
@@ -169,5 +175,8 @@ async def my_id(m: types.Message): await m.answer(f"Ваш Telegram ID: {m.from_
 @app.on_event("startup")
 async def up(): asyncio.create_task(dp.start_polling(bot))
 
+if os.path.isdir("webapp"):
+    app.mount("/", StaticFiles(directory="webapp", html=True))  # можно отдавать мини-апп и отсюда
+
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8080)))
+    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))
