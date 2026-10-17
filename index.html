@@ -21,8 +21,37 @@ button{font-family:inherit;touch-action:manipulation;-webkit-tap-highlight-color
 input,textarea{width:100%;background:#0f0b1a;border:1px solid var(--line);border-radius:12px;padding:13px;color:var(--tx);font:inherit;outline:0;min-width:0}input:focus,textarea:focus{border-color:var(--ac)}
 label.l{display:block;font-weight:600;font-size:13px;margin:12px 0 5px}
 .tabs{display:flex;background:#0f0b1a;border:1px solid var(--line);border-radius:16px;padding:4px;margin:12px 0}.tabs button{flex:1;min-height:42px;border:0;background:none;color:var(--mu);padding:8px;border-radius:12px;font-weight:700;cursor:pointer;transition:background .3s,color .3s}.tabs .on{background:linear-gradient(180deg,#b86cff,var(--ac2));color:#fff}
-.nav{position:fixed;left:0;right:0;margin:0 auto;bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;gap:4px;background:#100c1c;border:1px solid var(--line);border-radius:26px;padding:6px;width:min(440px,calc(100% - 28px));z-index:5}
-.nav button{flex:1;min-height:52px;border:0;background:none;color:var(--mu);padding:8px 4px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;transition:all .25s}.nav .on{background:#2a1850;color:#d8b4fe}
+
+/* ИСПРАВЛЕНА НИЖНЯЯ НАВИГАЦИЯ */
+.nav{
+  position:fixed;
+  left:50%;
+  transform:translateX(-50%);
+  bottom:calc(14px + env(safe-area-inset-bottom,0px));
+  display:flex;
+  gap:4px;
+  background:#100c1c;
+  border:1px solid var(--line);
+  border-radius:26px;
+  padding:6px;
+  width:calc(100% - 28px);
+  max-width:440px;
+  z-index:50;
+}
+.nav button{flex:1;min-height:52px;border:0;background:none;color:var(--mu);padding:8px 4px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;transition:all .25s;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.nav .on{background:#2a1850;color:#d8b4fe}
+
+/* ИСПРАВЛЕНЫ ПЛАВАЮЩИЕ КНОПКИ В МАСТЕРЕ */
+.fx{
+  position:fixed;
+  left:50%;
+  transform:translateX(-50%);
+  bottom:calc(16px + env(safe-area-inset-bottom,0px));
+  width:calc(100% - 32px);
+  max-width:448px;
+  z-index:50;
+}
+
 .chip{display:inline-block;background:#2a1850;border:1px solid #5b34a0;border-radius:10px;padding:6px 10px;margin:4px 4px 0 0;font-weight:700;animation:pop .4s both}.chip i{cursor:pointer;color:var(--mu);margin-left:6px;font-style:normal}
 .st{font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px;white-space:nowrap}.st.p{background:#3a2c0a;color:var(--warn)}.st.a{background:#0f2e1a;color:var(--ok)}.st.r{background:#3a1420;color:var(--bad)}
 .thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.thumbs img{width:76px;height:96px;object-fit:cover;border-radius:12px;border:1px solid var(--line);animation:pop .4s both}.thumbs .add{width:76px;height:96px;border-radius:12px;border:1px dashed var(--ac);display:grid;place-items:center;color:var(--ac);font-weight:700;font-size:26px;cursor:pointer}
@@ -30,7 +59,7 @@ label.l{display:block;font-weight:600;font-size:13px;margin:12px 0 5px}
 .steps{display:flex;gap:6px;margin:10px 0 16px}.steps div{flex:1;height:4px;border-radius:4px;background:var(--line)}.steps .on{background:var(--ac)}
 .lv{border:1px solid var(--line);border-radius:14px;padding:10px;text-align:center;font-size:12px;color:var(--mu)}.lv b{display:block;font-size:20px;color:var(--tx)}.lv.on{border-color:var(--ac);background:#2a185066}
 .empty{text-align:center;padding:26px 6px;color:var(--mu)}.empty b{display:block;color:var(--tx);font-size:17px;margin-bottom:4px}
-#toast{position:fixed;top:calc(14px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);background:#2a1850;border:1px solid var(--ac);padding:10px 16px;border-radius:14px;z-index:9;display:none;max-width:90%;animation:tin .3s ease-out}
+#toast{position:fixed;top:calc(14px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);background:#2a1850;border:1px solid var(--ac);padding:10px 16px;border-radius:14px;z-index:99;display:none;max-width:90%;animation:tin .3s ease-out}
 .hr{border-top:1px solid var(--line);margin:10px 0}.adm{border-color:#5b34a0}
 .pw{position:relative}.pw input{padding-right:48px}.pw button{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:40px;height:40px;background:none;border:0;color:var(--mu);cursor:pointer;font-size:18px}
 .sw{display:flex;justify-content:space-between;align-items:center;margin-top:16px;gap:12px}.sw b{display:block;font-size:14px}
@@ -39,8 +68,7 @@ label.l{display:block;font-weight:600;font-size:13px;margin:12px 0 5px}
 @keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}@keyframes pop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}@keyframes glow{0%,100%{box-shadow:0 6px 18px #7c3aed55}50%{box-shadow:0 6px 30px #a855f7aa}}@keyframes grow{from{width:0}}@keyframes ring{0%{box-shadow:0 0 0 0 #a855f799}100%{box-shadow:0 0 0 12px #a855f700}}@keyframes tin{from{opacity:0;transform:translate(-50%,-14px)}to{opacity:1;transform:translate(-50%,0)}}@keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 #app.go>*{animation:up .5s cubic-bezier(.2,.8,.2,1) both}#app.go>*:nth-child(2){animation-delay:.06s}#app.go>*:nth-child(3){animation-delay:.12s}#app.go>*:nth-child(4){animation-delay:.18s}#app.go>*:nth-child(n+5){animation-delay:.24s}
 .card{transition:transform .2s}.card:active{transform:scale(.99)}
-.fx{position:fixed;left:0;right:0;margin:0 auto;bottom:calc(16px + env(safe-area-inset-bottom,0px));width:min(448px,calc(100% - 32px));z-index:5}
-#app.go>.nav,#app.go>.fx{animation:none}
+#app.go>.nav, #app.go>.fx { animation: none !important; }
 </style>
 </head>
 <body>
@@ -48,7 +76,7 @@ label.l{display:block;font-weight:600;font-size:13px;margin:12px 0 5px}
 <div id="app"></div>
 <script>
 const RATE=1.357,RUB=113.53,K='mapp3';
-const ADMIN_TG_IDS=[1383803958]; // Telegram ID админов — через запятую
+const ADMIN_TG_IDS=[1383803958];
 let db={users:{},reqs:[],wd:[],hist:[]};
 try{Object.assign(db,JSON.parse(localStorage.getItem(K)||'{}'))}catch(e){}
 
@@ -77,7 +105,6 @@ function toast(t){const e=document.getElementById('toast');e.textContent=t;e.sty
 async function hash(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('salt:'+s));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
 function togglePwd(id,b){const i=document.getElementById(id);if(!i)return;const h=i.type==='password';i.type=h?'text':'password';b.textContent=h?'🙈':'👁'}
 
-/* ---------- Регистрация и вход ---------- */
 async function auth(){
  const l=$v('l').trim().toLowerCase(),p=$v('p'),rem=!!(document.getElementById('rem')||{}).checked;
  if(!LOGIN_RE.test(l))return toast('Логин: латиница, цифры, точка, дефис — от 3 символов');
@@ -96,7 +123,6 @@ async function auth(){
 }
 function logout(){setSess(null,false);S.mode='login';render()}
 
-/* ---------- Отрисовка ---------- */
 function render(){
  const a=document.getElementById('app');
  const k=!cur?'u'+S.mode:S.wiz?'w'+S.wiz.step:S.tab;
@@ -170,7 +196,6 @@ function payV(u){
 function withdraw(){const u=me(),a=parseFloat(prompt('Сумма вывода, GRAM (доступно '+f2(u.balance)+')','')||0);if(!(a>0)||a>u.balance)return toast('Неверная сумма');
  u.balance-=a;db.wd.push({id:Date.now(),u:cur,a,s:'p',d:dt()});db.hist.push({u:cur,t:'Вывод',a:-a,d:dt()});save();S.sub='wd';render();toast('Заявка на вывод создана')}
 
-/* ---------- Мастер заявки ---------- */
 function startWiz(){S.wiz={step:1,ids:[],shots:[],links:[],comment:''};render()}
 const w2=d=>{S.wiz.step+=d};
 function wizV(){
@@ -188,7 +213,6 @@ function sendReq(){const w=S.wiz,id=200+db.reqs.length;
  db.reqs.push({id,u:cur,ids:w.ids,shots:w.shots,links:w.links,comment:w.comment,s:'p',d:dt(),p:pct(me())});
  save();S.wiz=null;S.tab='pay';S.sub='req';render();toast('Заявка #'+id+' отправлена на проверку')}
 
-/* ---------- Админ-панель (доступ по Telegram ID) ---------- */
 function admV(){
  const P=db.reqs.filter(r=>r.s=='p'),W=db.wd.filter(w=>w.s=='p'),who=u=>u?E(u.nick)+(u.tgUser?' ('+E(u.tgUser)+')':''):'—';
  return `<h1>Админ-панель</h1><h2>Заявки на проверке (${P.length})</h2>`+(P.length?P.map(r=>`<div class="card adm"><div class="row sb"><b>Заявка #${r.id}</b><span class="mu">${who(db.users[r.u])} · ${r.p}%</span></div><div class="mu">${r.d}</div>${r.ids.map(i=>`<span class="chip">#${E(i)}</span>`).join('')}<div class="thumbs">${r.shots.map(s=>`<img src="${s}">`).join('')}</div>${r.links.map(l=>`<div class="mu" style="margin-top:6px">🎁 ${E(l)}</div>`).join('')}${r.comment?`<div class="card mu" style="margin:8px 0 0;padding:10px">💬 ${E(r.comment)}</div>`:''}
@@ -200,7 +224,6 @@ function appr(id){const r=db.reqs.find(x=>x.id==id),a=parseFloat($v('a'+id));if(
 function rej(id){const n=prompt('Причина отклонения (необязательно)')||'',r=db.reqs.find(x=>x.id==id);r.s='r';r.note=n;save();render()}
 function paid(id){const w=db.wd.find(x=>x.id==id);w.s='d';db.users[w.u].withdrawn+=w.a;save();render()}
 
-/* ---------- Синхронизация вкладок (демо на одном устройстве) ---------- */
 addEventListener('storage',e=>{
  if(e.key!==K||!e.newValue)return;const o=pc();
  try{const j=JSON.parse(e.newValue);db.users=j.users||{};db.reqs=j.reqs||[];db.wd=j.wd||[];db.hist=j.hist||[]}catch(x){return}
