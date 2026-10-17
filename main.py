@@ -4,9 +4,9 @@ from urllib.parse import parse_qsl
 from fastapi import FastAPI, Header, HTTPException, Body, Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from aiogram import Bot, Dispatcher, types
+from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import CommandStart, Command
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo, BufferedInputFile
+from aiogram.types import FSInputFile, InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo, BufferedInputFile
 import uvicorn
 try:
     from dotenv import load_dotenv
@@ -75,7 +75,7 @@ def pct(uid):
     d = m * RATE
     return (80 if d >= 150 else 75 if d >= 75 else 70), m
 
-import re, secrets
+import re, secrets, tempfile
 
 def reg(u=Depends(user)):
     if not q("SELECT 1 FROM users WHERE id=? AND login IS NOT NULL", u["id"]): raise HTTPException(403, "register first")
@@ -205,6 +205,40 @@ async def paid(b: dict = Body(...), a=Depends(admin)):
     await tell(w[0]["uid"], f"💸 Вывод {w[0]['amt']} GRAM выплачен.")
     return {"ok": 1}
 
+# ---------- Резервные копии базы (id, логины, хэши паролей, балансы) ----------
+def make_backup():
+    path = os.path.join(tempfile.gettempdir(), "backup.db")
+    dst = sqlite3.connect(path); db.backup(dst); dst.close()
+    return path
+
+async def send_backup(chat, note=""):
+    try:
+        await bot.send_document(chat, FSInputFile(make_backup(), filename="data.db"),
+            caption=f"💾 Резервная копия базы {note}\nЧтобы восстановить — отправьте этот файл боту.")
+    except Exception as e: print("backup fail", chat, e)
+
+async def backup_loop():
+    while True:
+        await asyncio.sleep(6 * 3600)
+        for a in ADMINS: await send_backup(a, "(авто)")
+
+@dp.message(Command("backup"))
+async def cmd_backup(m: types.Message):
+    if m.from_user.id in ADMINS: await send_backup(m.chat.id)
+
+@dp.message(F.document)
+async def restore(m: types.Message):
+    if m.from_user.id not in ADMINS or not (m.document.file_name or "").endswith(".db"): return
+    path = os.path.join(tempfile.gettempdir(), "restore.db")
+    await bot.download(m.document, destination=path)
+    try:
+        src = sqlite3.connect(path); src.execute("SELECT COUNT(*) FROM users").fetchone()
+        src.backup(db); src.close()
+        ex("CREATE TABLE IF NOT EXISTS links(tg INTEGER PRIMARY KEY,acc INTEGER)")
+    except Exception as e:
+        return await m.answer(f"Не удалось восстановить: {e}")
+    await m.answer("✅ База восстановлена. Пользователей: " + str(q("SELECT COUNT(*) c FROM users")[0]["c"]))
+
 @dp.message(CommandStart())
 async def start(m: types.Message):
     kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🚀 Открыть", web_app=WebAppInfo(url=URL))]])
@@ -214,7 +248,11 @@ async def start(m: types.Message):
 async def my_id(m: types.Message): await m.answer(f"Ваш Telegram ID: {m.from_user.id}")
 
 @app.on_event("startup")
-async def up(): asyncio.create_task(dp.start_polling(bot))
+async def up():
+    asyncio.create_task(dp.start_polling(bot)); asyncio.create_task(backup_loop())
+    n = q("SELECT COUNT(*) c FROM users")[0]["c"]
+    for a in ADMINS:
+        await tell(a, f"🟢 Бот запущен. Пользователей в базе: {n}" + ("\n⚠️ База пустая. Если пользователи были раньше — отправьте мне последний файл data.db, я всё восстановлю." if n == 0 else ""))
 
 if os.path.isdir("webapp"):
     app.mount("/", StaticFiles(directory="webapp", html=True))  # можно отдавать мини-апп и отсюда
