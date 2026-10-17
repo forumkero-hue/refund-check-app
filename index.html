@@ -259,6 +259,32 @@ async function withdraw(){const u=me(),a=parseFloat(prompt('Сумма выво�
 async function appr(id){const a=parseFloat($v('a'+id));if(!(a>0))return toast('Укажите сумму');try{await API('admin/approve',{id,amount:a});await sync();toast('Заявка принята, баланс начислен')}catch(e){toast('Ошибка при принятии')}}
 async function rej(id){const n=prompt('Причина отклонения (необязательно)')||'';try{await API('admin/reject',{id,note:n});await sync();toast('Заявка отклонена')}catch(e){toast('Ошибка')}}
 async function paid(id){try{await API('admin/paid',{id});await sync();toast('Отмечено как выплачено')}catch(e){toast('Ошибка')}}
+function authV(){
+ if(loadErr)return `<div class="card empty" style="margin-top:25vh"><b>Нет связи с сервером</b>${E(loadErr)}<div class="mu" style="margin:8px 0">Откройте приложение из бота в Telegram</div><button class="btn sm" style="margin:0 auto" onclick="loadErr='';loaded=false;render();sync()">Повторить</button></div>`;
+ if(!loaded)return '<div class="empty" style="padding-top:35vh"><b class="fl">💜</b>Загрузка…</div>';
+ const r=S.mode=='reg';
+ return `<div style="text-align:center;padding-top:20px"><h1 style="letter-spacing:2px"><span class="fl">💜</span> НАЗВАНИЕ</h1><div class="mu">${r?'Создайте аккаунт за пару секунд':'Войдите в свой аккаунт'}</div></div>
+<div class="card" style="margin-top:18px">
+ <div class="tabs"><button class="${r?'':'on'}" onclick="S.mode='login';render()">Вход</button><button class="${r?'on':''}" onclick="S.mode='reg';render()">Регистрация</button></div>
+ <label class="l">Логин</label><input id="l" placeholder="your.login" autocapitalize="off" autocomplete="off">
+ ${r?'<div class="mu" style="margin-top:4px">Латиница, цифры, точка, дефис — от 3 символов</div><label class="l">Никнейм</label><input id="n" placeholder="Необязательно"><div class="mu" style="margin-top:4px">Виден в рейтинге. Если пусто — будет как логин</div>':''}
+ <label class="l">Пароль</label><div class="pw"><input id="p" type="password" placeholder="••••••••"><button type="button" onclick="togglePwd('p',this)">👁</button></div>
+ ${r?`<div class="mu" style="margin-top:4px">Минимум 8 символов</div><label class="l">Повторите пароль</label><div class="pw"><input id="p2" type="password" placeholder="••••••••"><button type="button" onclick="togglePwd('p2',this)">👁</button></div>`:''}
+ <div style="height:16px"></div><button class="btn" onclick="auth()">${r?'Создать аккаунт':'Войти'}</button></div>
+<div class="card mu"><b style="color:var(--tx)">🛡 Полная анонимность.</b> Не нужны телефон и e-mail. Пароль хранится только в виде необратимого хэша.</div>`}
+
+async function auth(){const l=$v('l').trim().toLowerCase(),p=$v('p');
+ if(!LOGIN_RE.test(l))return toast('Логин: латиница, цифры, точка, дефис — от 3 символов');
+ if(S.mode=='reg'){
+  if(p.length<8)return toast('Пароль — минимум 8 символов');if(p!==$v('p2'))return toast('Пароли не совпадают');
+  try{await API('register',{login:l,nick:$v('n').trim()||l,password:p});toast('Аккаунт создан');await sync()}
+  catch(e){toast(String(e.message).startsWith('409')?'Этот логин уже занят':'Не удалось создать аккаунт')}
+ }else{
+  if(!p)return toast('Введите пароль');
+  try{await API('login',{login:l,password:p});toast('Вы вошли в аккаунт');await sync()}
+  catch(e){const c=String(e.message);toast(c.startsWith('401')?'Неверный логин или пароль':c.startsWith('429')?'Слишком много попыток, подождите 10 минут':'Не удалось войти')}
+ }}
+S.mode='reg';
 render();sync();setInterval(sync,8000);
 </script>
 </body>
