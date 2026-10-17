@@ -37,7 +37,6 @@ def jl(r):
 
 bot = Bot(TOKEN); dp = Dispatcher(); app = FastAPI()
 
-# ВАЖНО: allow_credentials=False, иначе браузер блокирует запросы с '*' origin
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -51,6 +50,7 @@ async def tell(uid, text):
     except Exception: pass
 
 def auth(init: str) -> dict:
+    if not init: raise HTTPException(401, "no initData")
     d = dict(parse_qsl(init)); h = d.pop("hash", "")
     chk = "\n".join(f"{k}={v}" for k, v in sorted(d.items()))
     sec = hmac.new(b"WebAppData", TOKEN.encode(), hashlib.sha256).digest()
@@ -61,12 +61,11 @@ def auth(init: str) -> dict:
     ex("INSERT OR IGNORE INTO users(id,nick) VALUES(?,?)", u["id"], u.get("username") or u.get("first_name") or "user")
     return u
 
-# Сайт отправляет заголовок 'x-init-data', поэтому используем alias
 def user(x_init_data: str = Header("", alias="x-init-data")): 
     return auth(x_init_data)
 
 def admin(u=Depends(user)):
-    if u["id"] not in ADMINS: raise HTTPException(403)
+    if u["id"] not in ADMINS: raise HTTPException(403, "Access denied")
     return u
 
 def pct(uid):
