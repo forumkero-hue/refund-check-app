@@ -2,21 +2,21 @@ import os, hmac, hashlib, json, base64, sqlite3, time, asyncio
 from datetime import datetime, timezone
 from urllib.parse import parse_qsl
 from fastapi import FastAPI, Header, HTTPException, Body, Depends
-from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart, Command
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo, BufferedInputFile
 import uvicorn
 try:
     from dotenv import load_dotenv
-    load_dotenv()  # читает файл .env рядом с bot.py
+    load_dotenv()
 except ImportError:
     pass
 
 TOKEN = os.environ["BOT_TOKEN"]
-URL = os.environ["WEBAPP_URL"]  # https://ваш-домен
+URL = os.environ["WEBAPP_URL"]
 ADMINS = {int(x) for x in os.environ.get("ADMIN_IDS", "").split(",") if x.strip()}
-RATE = 1.357  # 1 GRAM в USDT
+RATE = 1.357
 
 db = sqlite3.connect(os.getenv("DB_PATH", "data.db"), check_same_thread=False)
 db.row_factory = sqlite3.Row
@@ -36,6 +36,15 @@ def jl(r):
 
 bot = Bot(TOKEN); dp = Dispatcher(); app = FastAPI()
 
+# ДОБАВЛЕНО: разрешаем запросы с любых доменов (нужно для GitHub Pages)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 async def tell(uid, text):
     try: await bot.send_message(uid, text)
     except Exception: pass
@@ -53,7 +62,7 @@ def auth(init: str) -> dict:
 
 def user(x_init_data: str = Header("")): return auth(x_init_data)
 def admin(u=Depends(user)):
-    if u["id"] not in ADMINS: raise HTTPException(403)  # роль только по Telegram ID
+    if u["id"] not in ADMINS: raise HTTPException(403)
     return u
 
 def pct(uid):
@@ -149,8 +158,6 @@ async def my_id(m: types.Message): await m.answer(f"Ваш Telegram ID: {m.from_
 
 @app.on_event("startup")
 async def up(): asyncio.create_task(dp.start_polling(bot))
-
-#app.mount("/", StaticFiles(directory="webapp", html=True))  # мини-апп отдаётся отсюда
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))
