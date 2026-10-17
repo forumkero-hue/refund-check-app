@@ -173,4 +173,4 @@ async def my_id(m: types.Message): await m.answer(f"Ваш Telegram ID: {m.from_
 async def up(): asyncio.create_task(dp.start_polling(bot))
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))
+    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8080)))
