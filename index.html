@@ -142,7 +142,7 @@ async function sync(){try{const o=pc(),m=await API('me'),id=String(m.user.id);
  db.reqs=R.sort((a,b)=>a.id-b.id);db.wd=W.sort((a,b)=>a.id-b.id);db.hist=m.hist.map(h=>({u:id,t:h.title,a:h.amt,d:D(h.ts)}));db.me=id;
  if(m.admin&&!firstSync&&pc()>o){toast('🔔 Новая заявка на проверку');try{navigator.vibrate(80)}catch(x){}}
  const busy=S.wiz||(document.activeElement&&document.activeElement.matches('input,textarea'));if(firstSync||!busy)render();firstSync=false}
- catch(e){if(!db.me)document.getElementById('app').innerHTML='<div class="empty" style="padding-top:30vh"><b>Откройте через Telegram</b>Приложение работает только внутри бота.</div>'}}
+ catch(e){if(!db.me)document.getElementById('app').innerHTML='<div class="empty" style="padding-top:30vh"><b>Нет связи с сервером бота</b>Код ошибки: '+e.message+'<br>Адрес страницы: '+location.origin+'<br>Он должен совпадать с адресом, где запущен bot.py.</div>'}}
 async function sendReq(){const w=S.wiz;try{const r=await API('requests',{ids:w.ids,links:w.links,shots:w.shots,comment:w.comment});S.wiz=null;S.tab='pay';S.sub='req';await sync();toast('Заявка #'+r.id+' отправлена на проверку')}catch(e){toast('Не удалось отправить заявку')}}
 async function wallet(){const w=prompt('Адрес GRAM-кошелька');if(w&&w.trim().length>5){try{await API('wallet',{wallet:w.trim()});await sync();toast('Кошелёк сохранён')}catch(e){toast('Ошибка')}}}
 async function withdraw(){const u=me(),a=parseFloat(prompt('Сумма вывода, GRAM (доступно '+f2(u.balance)+')','')||0);if(!(a>0)||a>u.balance)return toast('Неверная сумма');try{await API('withdraw',{amount:a});S.sub='wd';await sync();toast('Заявка на вывод создана')}catch(e){toast('Ошибка')}}
