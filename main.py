@@ -7,6 +7,7 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart, Command
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo, BufferedInputFile
 import uvicorn
+
 try:
     from dotenv import load_dotenv
     load_dotenv()
@@ -36,7 +37,7 @@ def jl(r):
 
 bot = Bot(TOKEN); dp = Dispatcher(); app = FastAPI()
 
-# ДОБАВЛЕНО: разрешаем запросы с любых доменов (нужно для GitHub Pages)
+# Разрешаем запросы с любых доменов (нужно для GitHub Pages)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -60,7 +61,10 @@ def auth(init: str) -> dict:
     ex("INSERT OR IGNORE INTO users(id,nick) VALUES(?,?)", u["id"], u.get("username") or u.get("first_name") or "user")
     return u
 
-def user(x_init_data: str = Header("")): return auth(x_init_data)
+# Исправлено: теперь сервер ищет заголовок 'x-init-data', как отправляет сайт
+def user(x_init_data: str = Header("", alias="x-init-data")): 
+    return auth(x_init_data)
+
 def admin(u=Depends(user)):
     if u["id"] not in ADMINS: raise HTTPException(403)
     return u
@@ -86,16 +90,25 @@ async def new_req(b: dict = Body(...), u=Depends(user)):
     links = [str(x)[:200] for x in b.get("links", [])][:20]
     shots = [s for s in b.get("shots", []) if str(s).startswith("data:image/")][:8]
     com = str(b.get("comment", ""))[:500]
-    if not (ids and links and shots): raise HTTPException(400)
+    
+    if not (ids and links and shots): 
+        raise HTTPException(400, "Не хватает данных: нужны ID, ссылки и скриншоты")
+        
     rid = ex("INSERT INTO reqs(uid,ids,shots,links,comment,ts) VALUES(?,?,?,?,?,?)",
              u["id"], json.dumps(ids), json.dumps(shots), json.dumps(links), com, int(time.time()))
-    who = "@" + u["username"] if u.get("username") else u.get("first_name", "")
+             
+    who = "@" + u["username"] if u.get("username") else u.get("first_name", "User")
     txt = f"🔔 Новая заявка #{rid}\n👤 {who}\n🆔 Работ: {len(ids)} ({', '.join(ids[:10])})\n🎁 " + "\n".join(links[:5]) + (f"\n💬 {com}" if com else "")
+    
     kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🛡 Открыть и проверить", web_app=WebAppInfo(url=URL))]])
     img = base64.b64decode(shots[0].split(",", 1)[1])
+    
     for a in ADMINS:
-        try: await bot.send_photo(a, BufferedInputFile(img, "shot.jpg"), caption=txt[:1000], reply_markup=kb)
-        except Exception as e: print("notify fail", a, e)
+        try: 
+            await bot.send_photo(a, BufferedInputFile(img, "shot.jpg"), caption=txt[:1000], reply_markup=kb)
+        except Exception as e: 
+            print(f"Ошибка отправки админу {a}:", e)
+            
     return {"id": rid}
 
 @app.post("/api/wallet")
