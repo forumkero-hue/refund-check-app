@@ -17,7 +17,7 @@ except ImportError:
 TOKEN = os.environ["BOT_TOKEN"]
 URL = os.environ.get("WEBAPP_URL") or ("https://" + os.environ.get("RAILWAY_PUBLIC_DOMAIN", "localhost"))
 ADMINS = {int(x) for x in os.environ.get("ADMIN_IDS", "").split(",") if x.strip()}
-RATE = 1.357  # 1 GRAM в USDT
+RATE = 1.357
 
 LOG_CHAT_ID = int(os.environ.get("LOG_CHAT_ID", "0"))
 
@@ -156,7 +156,7 @@ async def withdraw(b: dict = Body(...), u=Depends(reg)):
     ex("UPDATE users SET balance=balance-? WHERE id=?", amt, u["id"])
     ex("INSERT INTO wd(uid,amt,ts) VALUES(?,?,?)", u["id"], amt, int(time.time()))
     ex("INSERT INTO hist(uid,title,amt,ts) VALUES(?,?,?,?)", u["id"], "Вывод", -amt, int(time.time()))
-    for a in ADMINS: await tell(a, f"💸 Заявка на вывод: {amt} GRAM от {row['nick']}\n{row['wallet']}")
+    for a in ADMINS: await tell(a, f"Заявка на вывод: {amt} GRAM от {row['nick']}\n{row['wallet']}")
     return {"ok": 1}
 
 @app.get("/api/admin")
@@ -167,13 +167,9 @@ def adm(a=Depends(admin)):
 
 @app.get("/api/cashbox")
 def cashbox(a=Depends(admin)):
-    # Общая сумма профитов (за все время)
     total_profit = q("SELECT COALESCE(SUM(share),0) s FROM reqs WHERE status='a'")[0]["s"]
-    # Сколько выплачено воркерам на баланс
     worker_share = q("SELECT COALESCE(SUM(share),0) s FROM reqs WHERE status='a'")[0]["s"]
-    # Сколько выведено воркерам
     total_withdrawn = q("SELECT COALESCE(SUM(amt),0) s FROM wd WHERE status='d'")[0]["s"]
-    # Твоя доля (остаток в кассе)
     my_share = total_profit - total_withdrawn
     return {
         "total_profit": round(total_profit, 2),
@@ -190,6 +186,7 @@ async def approve(b: dict = Body(...), a=Depends(admin)):
     ex("UPDATE reqs SET status='a',amt=?,pct=?,share=? WHERE id=?", amt, p, sh, r["id"])
     ex("UPDATE users SET balance=balance+?,earned=earned+? WHERE id=?", sh, sh, r["uid"])
     ex("INSERT INTO hist(uid,title,amt,ts) VALUES(?,?,?,?)", r["uid"], f"Заявка #{r['id']}", sh, int(time.time()))
+    
     await tell(r["uid"], f"✅ Заявка #{r['id']} принята: +{sh} GRAM ({p}% от {amt})")
 
     if LOG_CHAT_ID:
@@ -220,14 +217,14 @@ async def paid(b: dict = Body(...), a=Depends(admin)):
     if not w: raise HTTPException(400)
     ex("UPDATE wd SET status='d' WHERE id=?", w[0]["id"])
     ex("UPDATE users SET withdrawn=withdrawn+? WHERE id=?", w[0]["amt"], w[0]["uid"])
-    await tell(w[0]["uid"], f"💸 Вывод {w[0]['amt']} GRAM выплачен.")
+    
+    await tell(w[0]["uid"], f"Вывод {w[0]['amt']} GRAM выплачен.")
 
     if LOG_CHAT_ID:
         user_info = q("SELECT nick, wallet FROM users WHERE id=?", w[0]["uid"])[0]
         amt = w[0]["amt"]
-        usd = amt * RATE
         log_text = (
-            f"💸 <b>Выплата {amt:.2f} GRAM</b> (~${usd:.2f})\n"
+            f"Выплата {amt:.2f} GRAM\n"
             f"Получатель: {user_info['nick']}\n"
             f"Кошелёк: <code>{user_info['wallet']}</code>"
         )
@@ -245,7 +242,7 @@ def make_backup():
 async def send_backup(chat, note=""):
     try:
         await bot.send_document(chat, FSInputFile(make_backup(), filename="data.db"),
-            caption=f"💾 Резервная копия базы {note}\nЧтобы восстановить — отправьте этот файл боту.")
+            caption=f"Резервная копия базы {note}\nЧтобы восстановить — отправьте этот файл боту.")
     except Exception as e: print("backup fail", chat, e)
 
 LOOP = None; bk_task = None
@@ -281,12 +278,12 @@ async def restore(m: types.Message):
         ex("CREATE TABLE IF NOT EXISTS links(tg INTEGER PRIMARY KEY,acc INTEGER)")
     except Exception as e:
         return await m.answer(f"Не удалось восстановить: {e}")
-    await m.answer("✅ База восстановлена. Пользователей: " + str(q("SELECT COUNT(*) c FROM users")[0]["c"]))
+    await m.answer("База восстановлена. Пользователей: " + str(q("SELECT COUNT(*) c FROM users")[0]["c"]))
 
 @dp.message(CommandStart())
 async def start(m: types.Message):
     kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🚀 Открыть", web_app=WebAppInfo(url=URL))]])
-    await m.answer("👋 Добро пожаловать! Нажмите кнопку ниже, чтобы открыть приложение.", reply_markup=kb)
+    await m.answer("Добро пожаловать! Нажмите кнопку ниже, чтобы открыть приложение.", reply_markup=kb)
 
 @dp.message(Command("id"))
 async def my_id(m: types.Message): await m.answer(f"Ваш Telegram ID: {m.from_user.id}")
@@ -297,7 +294,7 @@ async def up():
     asyncio.create_task(dp.start_polling(bot)); asyncio.create_task(backup_loop())
     n = q("SELECT COUNT(*) c FROM users")[0]["c"]
     for a in ADMINS:
-        await tell(a, f"🟢 Бот запущен. Пользователей в базе: {n}" + ("\n⚠️ База пустая. Если пользователи были раньше — отправьте мне последний файл data.db, я всё восстановлю." if n == 0 else ""))
+        await tell(a, f"Бот запущен. Пользователей в базе: {n}" + ("\nБаза пустая. Если пользователи были раньше — отправьте мне последний файл data.db, я всё восстановлю." if n == 0 else ""))
 
 if os.path.isdir("webapp"):
     app.mount("/", StaticFiles(directory="webapp", html=True))
