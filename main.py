@@ -19,11 +19,13 @@ URL = os.environ.get("WEBAPP_URL") or ("https://" + os.environ.get("RAILWAY_PUBL
 ADMINS = {int(x) for x in os.environ.get("ADMIN_IDS", "").split(",") if x.strip()}
 RATE = 1.357
 
-# Чаты и темы для логов
-LOG_CHAT_ID = int(os.environ.get("LOG_CHAT_ID", "0"))            # ID группы
-LOG_THREAD_ID = 48                                               # <--- ID темы для профитов (захардкожено)
-PAYOUT_CHAT_ID = int(os.environ.get("PAYOUT_CHAT_ID", "0"))      # ID группы для выплат (если та же, что и профит, оставь 0)
-PAYOUT_THREAD_ID = 47                                            # <--- ID темы для выплат (захардкожено)
+# --- НАСТРОЙКИ ЛОГОВ ---
+# ID группы (куда шлем логи)
+LOG_GROUP_ID = -1003792489494 
+# ID темы для профитов (на баланс)
+THREAD_PROFIT = 48
+# ID темы для выплат (на кошелек)
+THREAD_PAYOUT = 47
 
 db = sqlite3.connect(os.getenv("DB_PATH", "data.db"), check_same_thread=False)
 db.row_factory = sqlite3.Row
@@ -200,20 +202,17 @@ async def approve(b: dict = Body(...), a=Depends(admin)):
     
     await tell(r["uid"], f"✅ Заявка #{r['id']} принята: +{sh} GRAM ({p}% от {amt})")
 
-    if LOG_CHAT_ID:
+    # Лог в тему "на баланс" (ID 48)
+    try:
         user_nick = q("SELECT nick FROM users WHERE id=?", r["uid"])[0]["nick"]
         log_text = (
             f"<b>Профит {amt:.2f} GRAM</b>\n"
             f"{user_nick} · LVL {1 if p==70 else 2 if p==75 else 3}, {p}%\n"
             f"На баланс: {sh:.2f} GRAM"
         )
-        try:
-            payload = {"chat_id": LOG_CHAT_ID, "text": log_text, "parse_mode": "HTML"}
-            if LOG_THREAD_ID:
-                payload["message_thread_id"] = LOG_THREAD_ID
-            await bot.send_message(**payload)
-        except Exception as e:
-            print(f"Ошибка отправки лога в чат {LOG_CHAT_ID}:", e)
+        await bot.send_message(LOG_GROUP_ID, log_text, parse_mode="HTML", message_thread_id=THREAD_PROFIT)
+    except Exception as e:
+        print(f"Ошибка отправки лога ПРОФИТА в чат {LOG_GROUP_ID}:", e)
     return {"ok": 1}
 
 @app.post("/api/admin/reject")
@@ -233,7 +232,8 @@ async def paid(b: dict = Body(...), a=Depends(admin)):
     
     await tell(w[0]["uid"], f"Вывод {w[0]['amt']} GRAM выплачен.")
 
-    if PAYOUT_CHAT_ID:
+    # Лог в тему "на кошелек" (ID 47)
+    try:
         user_info = q("SELECT nick, wallet FROM users WHERE id=?", w[0]["uid"])[0]
         amt = w[0]["amt"]
         log_text = (
@@ -241,13 +241,9 @@ async def paid(b: dict = Body(...), a=Depends(admin)):
             f"Получатель: {user_info['nick']}\n"
             f"Кошелёк: <code>{user_info['wallet']}</code>"
         )
-        try:
-            payload = {"chat_id": PAYOUT_CHAT_ID, "text": log_text, "parse_mode": "HTML"}
-            if PAYOUT_THREAD_ID:
-                payload["message_thread_id"] = PAYOUT_THREAD_ID
-            await bot.send_message(**payload)
-        except Exception as e:
-            print(f"Ошибка отправки лога в чат {PAYOUT_CHAT_ID}:", e)
+        await bot.send_message(LOG_GROUP_ID, log_text, parse_mode="HTML", message_thread_id=THREAD_PAYOUT)
+    except Exception as e:
+        print(f"Ошибка отправки лога ВЫПЛАТЫ в чат {LOG_GROUP_ID}:", e)
     return {"ok": 1}
 
 def make_backup():
