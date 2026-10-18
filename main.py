@@ -188,10 +188,10 @@ def reset_cashbox(a=Depends(admin)):
     ex("DELETE FROM wd WHERE status='d'")
     return {"ok": 1}
 
-# --- НОВЫЙ ЭНДПОИНТ ДЛЯ СБРОСА ТОПА ---
+# --- ЭНДПОИНТ СБРОСА ТОПА (ИСПРАВЛЕНО: убрана колонка month) ---
 @app.post("/api/admin/reset_top")
 def reset_top(a=Depends(admin)):
-    ex("UPDATE users SET earned = 0, month = 0")
+    ex("UPDATE users SET earned = 0")
     return {"ok": 1}
 
 @app.post("/api/admin/approve")
