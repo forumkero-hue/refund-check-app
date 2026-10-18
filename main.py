@@ -10,16 +10,15 @@ from aiogram.types import FSInputFile, InlineKeyboardMarkup, InlineKeyboardButto
 import uvicorn
 try:
     from dotenv import load_dotenv
-    load_dotenv()  # читает файл .env рядом с bot.py
+    load_dotenv()
 except ImportError:
     pass
 
 TOKEN = os.environ["BOT_TOKEN"]
-URL = os.environ.get("WEBAPP_URL") or ("https://" + os.environ.get("RAILWAY_PUBLIC_DOMAIN", "localhost"))  # на Railway берётся сам
+URL = os.environ.get("WEBAPP_URL") or ("https://" + os.environ.get("RAILWAY_PUBLIC_DOMAIN", "localhost"))
 ADMINS = {int(x) for x in os.environ.get("ADMIN_IDS", "").split(",") if x.strip()}
 RATE = 1.357  # 1 GRAM в USDT
 
-# ID канала/группы, куда бот шлёт уведомления о профите (переменная LOG_CHAT_ID)
 LOG_CHAT_ID = int(os.environ.get("LOG_CHAT_ID", "0"))
 
 db = sqlite3.connect(os.getenv("DB_PATH", "data.db"), check_same_thread=False)
@@ -31,7 +30,7 @@ CREATE TABLE IF NOT EXISTS wd(id INTEGER PRIMARY KEY AUTOINCREMENT,uid INT,amt R
 CREATE TABLE IF NOT EXISTS links(tg INTEGER PRIMARY KEY,acc INTEGER);
 CREATE TABLE IF NOT EXISTS hist(id INTEGER PRIMARY KEY AUTOINCREMENT,uid INT,title TEXT,amt REAL,ts INT);
 """)
-for _c in ("login", "pass"):  # миграция старой базы
+for _c in ("login", "pass"):
     try: db.execute(f"ALTER TABLE users ADD COLUMN {_c} TEXT")
     except sqlite3.OperationalError: pass
 
@@ -43,7 +42,7 @@ def jl(r):
     return r
 
 bot = Bot(TOKEN); dp = Dispatcher(); app = FastAPI()
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=False, allow_methods=["*"], allow_headers=["*"])  # фронтенд может лежать на GitHub Pages
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=False, allow_methods=["*"], allow_headers=["*"])
 
 async def tell(uid, text):
     try: await bot.send_message(uid, text)
@@ -59,14 +58,14 @@ def auth(init: str) -> dict:
     u = json.loads(d["user"])
     tg = u["id"]
     l = q("SELECT acc FROM links WHERE tg=?", tg)
-    acc = l[0]["acc"] if l else tg  # аккаунт, к которому привязан этот Telegram
+    acc = l[0]["acc"] if l else tg
     ex("INSERT OR IGNORE INTO users(id,nick) VALUES(?,?)", acc, u.get("username") or u.get("first_name") or "user")
     u["tg"] = tg; u["id"] = acc
     return u
 
 def user(x_init_data: str = Header("")): return auth(x_init_data)
 def admin(u=Depends(user)):
-    if u["tg"] not in ADMINS: raise HTTPException(403)  # админ — по Telegram ID  # роль только по Telegram ID
+    if u["tg"] not in ADMINS: raise HTTPException(403)
     return u
 
 def pct(uid):
@@ -166,6 +165,23 @@ def adm(a=Depends(admin)):
     for r in rs: r["pct"] = pct(r["uid"])[0]
     return dict(reqs=rs, wd=q("SELECT w.*,u.nick,u.wallet FROM wd w JOIN users u ON u.id=w.uid WHERE w.status='p' ORDER BY w.id"))
 
+@app.get("/api/cashbox")
+def cashbox(a=Depends(admin)):
+    # Общая сумма профитов (за все время)
+    total_profit = q("SELECT COALESCE(SUM(share),0) s FROM reqs WHERE status='a'")[0]["s"]
+    # Сколько выплачено воркерам на баланс
+    worker_share = q("SELECT COALESCE(SUM(share),0) s FROM reqs WHERE status='a'")[0]["s"]
+    # Сколько выведено воркерам
+    total_withdrawn = q("SELECT COALESCE(SUM(amt),0) s FROM wd WHERE status='d'")[0]["s"]
+    # Твоя доля (остаток в кассе)
+    my_share = total_profit - total_withdrawn
+    return {
+        "total_profit": round(total_profit, 2),
+        "worker_share": round(worker_share, 2),
+        "my_share": round(my_share, 2),
+        "total_withdrawn": round(total_withdrawn, 2)
+    }
+
 @app.post("/api/admin/approve")
 async def approve(b: dict = Body(...), a=Depends(admin)):
     r = q("SELECT * FROM reqs WHERE id=? AND status='p'", b.get("id")); amt = float(b.get("amount", 0))
@@ -205,9 +221,22 @@ async def paid(b: dict = Body(...), a=Depends(admin)):
     ex("UPDATE wd SET status='d' WHERE id=?", w[0]["id"])
     ex("UPDATE users SET withdrawn=withdrawn+? WHERE id=?", w[0]["amt"], w[0]["uid"])
     await tell(w[0]["uid"], f"💸 Вывод {w[0]['amt']} GRAM выплачен.")
+
+    if LOG_CHAT_ID:
+        user_info = q("SELECT nick, wallet FROM users WHERE id=?", w[0]["uid"])[0]
+        amt = w[0]["amt"]
+        usd = amt * RATE
+        log_text = (
+            f"💸 <b>Выплата {amt:.2f} GRAM</b> (~${usd:.2f})\n"
+            f"Получатель: {user_info['nick']}\n"
+            f"Кошелёк: <code>{user_info['wallet']}</code>"
+        )
+        try:
+            await bot.send_message(LOG_CHAT_ID, log_text, parse_mode="HTML")
+        except Exception as e:
+            print(f"Ошибка отправки лога в чат {LOG_CHAT_ID}:", e)
     return {"ok": 1}
 
-# ---------- Резервные копии базы (id, логины, хэши паролей, балансы) ----------
 def make_backup():
     path = os.path.join(tempfile.gettempdir(), "backup.db")
     dst = sqlite3.connect(path); db.backup(dst); dst.close()
@@ -222,14 +251,14 @@ async def send_backup(chat, note=""):
 LOOP = None; bk_task = None
 
 async def debounce_backup():
-    await asyncio.sleep(60)  # несколько регистраций подряд — одна копия
+    await asyncio.sleep(60)
     for a in ADMINS: await send_backup(a, "(новый пользователь)")
 
 def _start_bk():
     global bk_task
     if bk_task is None or bk_task.done(): bk_task = asyncio.ensure_future(debounce_backup())
 
-def schedule_backup():  # вызывается после регистрации/входа
+def schedule_backup():
     if LOOP: LOOP.call_soon_threadsafe(_start_bk)
 
 async def backup_loop():
@@ -271,7 +300,7 @@ async def up():
         await tell(a, f"🟢 Бот запущен. Пользователей в базе: {n}" + ("\n⚠️ База пустая. Если пользователи были раньше — отправьте мне последний файл data.db, я всё восстановлю." if n == 0 else ""))
 
 if os.path.isdir("webapp"):
-    app.mount("/", StaticFiles(directory="webapp", html=True))  # можно отдавать мини-апп и отсюда
+    app.mount("/", StaticFiles(directory="webapp", html=True))
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))
