@@ -21,9 +21,9 @@ RATE = 1.357
 
 # Чаты и темы для логов
 LOG_CHAT_ID = int(os.environ.get("LOG_CHAT_ID", "0"))            # ID группы
-LOG_THREAD_ID = int(os.environ.get("LOG_THREAD_ID", "0"))        # ID темы для профитов
-PAYOUT_CHAT_ID = int(os.environ.get("PAYOUT_CHAT_ID", "0"))      # ID группы (если другая)
-PAYOUT_THREAD_ID = int(os.environ.get("PAYOUT_THREAD_ID", "0"))  # ID темы для выплат
+LOG_THREAD_ID = 48                                               # <--- ID темы для профитов (захардкожено)
+PAYOUT_CHAT_ID = int(os.environ.get("PAYOUT_CHAT_ID", "0"))      # ID группы для выплат (если та же, что и профит, оставь 0)
+PAYOUT_THREAD_ID = 47                                            # <--- ID темы для выплат (захардкожено)
 
 db = sqlite3.connect(os.getenv("DB_PATH", "data.db"), check_same_thread=False)
 db.row_factory = sqlite3.Row
