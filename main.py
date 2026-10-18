@@ -234,12 +234,11 @@ async def paid(b: dict = Body(...), a=Depends(admin)):
 
     # Лог в тему "на кошелек" (ID 47)
     try:
-        user_info = q("SELECT nick, wallet FROM users WHERE id=?", w[0]["uid"])[0]
+        user_info = q("SELECT nick FROM users WHERE id=?", w[0]["uid"])[0]
         amt = w[0]["amt"]
         log_text = (
             f"Выплата {amt:.2f} GRAM\n"
-            f"Получатель: {user_info['nick']}\n"
-            f"Кошелёк: <code>{user_info['wallet']}</code>"
+            f"Получатель: {user_info['nick']}"
         )
         await bot.send_message(LOG_GROUP_ID, log_text, parse_mode="HTML", message_thread_id=THREAD_PAYOUT)
     except Exception as e:
