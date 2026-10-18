@@ -19,9 +19,11 @@ URL = os.environ.get("WEBAPP_URL") or ("https://" + os.environ.get("RAILWAY_PUBL
 ADMINS = {int(x) for x in os.environ.get("ADMIN_IDS", "").split(",") if x.strip()}
 RATE = 1.357
 
-# Чаты для логов
-LOG_CHAT_ID = int(os.environ.get("LOG_CHAT_ID", "0"))       # Чат для профитов
-PAYOUT_CHAT_ID = int(os.environ.get("PAYOUT_CHAT_ID", "0")) # Чат для выплат
+# Чаты и темы для логов
+LOG_CHAT_ID = int(os.environ.get("LOG_CHAT_ID", "0"))            # ID группы
+LOG_THREAD_ID = int(os.environ.get("LOG_THREAD_ID", "0"))        # ID темы для профитов
+PAYOUT_CHAT_ID = int(os.environ.get("PAYOUT_CHAT_ID", "0"))      # ID группы (если другая)
+PAYOUT_THREAD_ID = int(os.environ.get("PAYOUT_THREAD_ID", "0"))  # ID темы для выплат
 
 db = sqlite3.connect(os.getenv("DB_PATH", "data.db"), check_same_thread=False)
 db.row_factory = sqlite3.Row
@@ -181,10 +183,8 @@ def cashbox(a=Depends(admin)):
         "total_withdrawn": round(total_withdrawn, 2)
     }
 
-# --- ЭНДПОИНТ СБРОСА КАССЫ ---
 @app.post("/api/admin/reset_cashbox")
 def reset_cashbox(a=Depends(admin)):
-    # Удаляем все принятые заявки и завершенные выводы
     ex("DELETE FROM reqs WHERE status='a'")
     ex("DELETE FROM wd WHERE status='d'")
     return {"ok": 1}
@@ -208,7 +208,10 @@ async def approve(b: dict = Body(...), a=Depends(admin)):
             f"На баланс: {sh:.2f} GRAM"
         )
         try:
-            await bot.send_message(LOG_CHAT_ID, log_text, parse_mode="HTML")
+            payload = {"chat_id": LOG_CHAT_ID, "text": log_text, "parse_mode": "HTML"}
+            if LOG_THREAD_ID:
+                payload["message_thread_id"] = LOG_THREAD_ID
+            await bot.send_message(**payload)
         except Exception as e:
             print(f"Ошибка отправки лога в чат {LOG_CHAT_ID}:", e)
     return {"ok": 1}
@@ -239,7 +242,10 @@ async def paid(b: dict = Body(...), a=Depends(admin)):
             f"Кошелёк: <code>{user_info['wallet']}</code>"
         )
         try:
-            await bot.send_message(PAYOUT_CHAT_ID, log_text, parse_mode="HTML")
+            payload = {"chat_id": PAYOUT_CHAT_ID, "text": log_text, "parse_mode": "HTML"}
+            if PAYOUT_THREAD_ID:
+                payload["message_thread_id"] = PAYOUT_THREAD_ID
+            await bot.send_message(**payload)
         except Exception as e:
             print(f"Ошибка отправки лога в чат {PAYOUT_CHAT_ID}:", e)
     return {"ok": 1}
