@@ -19,7 +19,9 @@ URL = os.environ.get("WEBAPP_URL") or ("https://" + os.environ.get("RAILWAY_PUBL
 ADMINS = {int(x) for x in os.environ.get("ADMIN_IDS", "").split(",") if x.strip()}
 RATE = 1.357
 
-LOG_CHAT_ID = int(os.environ.get("LOG_CHAT_ID", "0"))
+# Чаты для логов
+LOG_CHAT_ID = int(os.environ.get("LOG_CHAT_ID", "0"))       # Чат для профитов
+PAYOUT_CHAT_ID = int(os.environ.get("PAYOUT_CHAT_ID", "0")) # Чат для выплат
 
 db = sqlite3.connect(os.getenv("DB_PATH", "data.db"), check_same_thread=False)
 db.row_factory = sqlite3.Row
@@ -191,9 +193,8 @@ async def approve(b: dict = Body(...), a=Depends(admin)):
 
     if LOG_CHAT_ID:
         user_nick = q("SELECT nick FROM users WHERE id=?", r["uid"])[0]["nick"]
-        usd = sh * RATE
         log_text = (
-            f"💰 <b>Профит {sh:.2f} GRAM</b> (~${usd:.2f})\n"
+            f"<b>Профит {amt:.2f} GRAM</b>\n"
             f"{user_nick} · LVL {1 if p==70 else 2 if p==75 else 3}, {p}%\n"
             f"На баланс: {sh:.2f} GRAM"
         )
@@ -220,7 +221,7 @@ async def paid(b: dict = Body(...), a=Depends(admin)):
     
     await tell(w[0]["uid"], f"Вывод {w[0]['amt']} GRAM выплачен.")
 
-    if LOG_CHAT_ID:
+    if PAYOUT_CHAT_ID:
         user_info = q("SELECT nick, wallet FROM users WHERE id=?", w[0]["uid"])[0]
         amt = w[0]["amt"]
         log_text = (
@@ -229,9 +230,9 @@ async def paid(b: dict = Body(...), a=Depends(admin)):
             f"Кошелёк: <code>{user_info['wallet']}</code>"
         )
         try:
-            await bot.send_message(LOG_CHAT_ID, log_text, parse_mode="HTML")
+            await bot.send_message(PAYOUT_CHAT_ID, log_text, parse_mode="HTML")
         except Exception as e:
-            print(f"Ошибка отправки лога в чат {LOG_CHAT_ID}:", e)
+            print(f"Ошибка отправки лога в чат {PAYOUT_CHAT_ID}:", e)
     return {"ok": 1}
 
 def make_backup():
