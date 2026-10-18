@@ -169,16 +169,25 @@ def adm(a=Depends(admin)):
 
 @app.get("/api/cashbox")
 def cashbox(a=Depends(admin)):
-    total_profit = q("SELECT COALESCE(SUM(share),0) s FROM reqs WHERE status='a'")[0]["s"]
+    total_profit = q("SELECT COALESCE(SUM(amt),0) s FROM reqs WHERE status='a'")[0]["s"]
     worker_share = q("SELECT COALESCE(SUM(share),0) s FROM reqs WHERE status='a'")[0]["s"]
     total_withdrawn = q("SELECT COALESCE(SUM(amt),0) s FROM wd WHERE status='d'")[0]["s"]
-    my_share = total_profit - total_withdrawn
+    my_share = total_profit - worker_share
+    
     return {
         "total_profit": round(total_profit, 2),
         "worker_share": round(worker_share, 2),
         "my_share": round(my_share, 2),
         "total_withdrawn": round(total_withdrawn, 2)
     }
+
+# --- ЭНДПОИНТ СБРОСА КАССЫ ---
+@app.post("/api/admin/reset_cashbox")
+def reset_cashbox(a=Depends(admin)):
+    # Удаляем все принятые заявки и завершенные выводы
+    ex("DELETE FROM reqs WHERE status='a'")
+    ex("DELETE FROM wd WHERE status='d'")
+    return {"ok": 1}
 
 @app.post("/api/admin/approve")
 async def approve(b: dict = Body(...), a=Depends(admin)):
