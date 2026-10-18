@@ -20,12 +20,9 @@ ADMINS = {int(x) for x in os.environ.get("ADMIN_IDS", "").split(",") if x.strip(
 RATE = 1.357
 
 # --- НАСТРОЙКИ ЛОГОВ ---
-# ID группы (куда шлем логи)
-LOG_GROUP_ID = -1003792489494 
-# ID темы для профитов (на баланс)
-THREAD_PROFIT = 48
-# ID темы для выплат (на кошелек)
-THREAD_PAYOUT = 47
+LOG_GROUP_ID = -1003792489494  # ID группы
+THREAD_PROFIT = 48             # ID темы для профитов (на баланс)
+THREAD_PAYOUT = 47             # ID темы для выплат (на кошелек)
 
 db = sqlite3.connect(os.getenv("DB_PATH", "data.db"), check_same_thread=False)
 db.row_factory = sqlite3.Row
@@ -191,6 +188,12 @@ def reset_cashbox(a=Depends(admin)):
     ex("DELETE FROM wd WHERE status='d'")
     return {"ok": 1}
 
+# --- НОВЫЙ ЭНДПОИНТ ДЛЯ СБРОСА ТОПА ---
+@app.post("/api/admin/reset_top")
+def reset_top(a=Depends(admin)):
+    ex("UPDATE users SET earned = 0, month = 0")
+    return {"ok": 1}
+
 @app.post("/api/admin/approve")
 async def approve(b: dict = Body(...), a=Depends(admin)):
     r = q("SELECT * FROM reqs WHERE id=? AND status='p'", b.get("id")); amt = float(b.get("amount", 0))
@@ -202,7 +205,6 @@ async def approve(b: dict = Body(...), a=Depends(admin)):
     
     await tell(r["uid"], f"✅ Заявка #{r['id']} принята: +{sh} GRAM ({p}% от {amt})")
 
-    # Лог в тему "на баланс" (ID 48)
     try:
         user_nick = q("SELECT nick FROM users WHERE id=?", r["uid"])[0]["nick"]
         log_text = (
@@ -232,7 +234,6 @@ async def paid(b: dict = Body(...), a=Depends(admin)):
     
     await tell(w[0]["uid"], f"Вывод {w[0]['amt']} GRAM выплачен.")
 
-    # Лог в тему "на кошелек" (ID 47)
     try:
         user_info = q("SELECT nick FROM users WHERE id=?", w[0]["uid"])[0]
         amt = w[0]["amt"]
