@@ -163,6 +163,8 @@ function admV(){
      <div class="row sb"><span class="mu">Моя доля:</span> <b class="ac">${f2(S.cashbox.my_share)} GRAM</b></div>
      <div class="hr"></div>
      <div class="row sb"><span class="mu">Выведено воркерам:</span> <b>${f2(S.cashbox.total_withdrawn)} GRAM</b></div>
+     <div style="height:10px"></div>
+     <button class="btn bad sm" onclick="resetCashbox()" style="width:100%">Сбросить кассу</button>
    </div>`;
  }
  return `<h1>Админ-панель</h1>${cashBoxHTML}<h2>Заявки на проверке (${P.length})</h2>`+(P.length?P.map(r=>`<div class="card adm"><div class="row sb"><b>Заявка #${r.id}</b><span class="mu">${who(db.users[r.u])} · ${r.p}%</span></div><div class="mu">${r.d}</div>${r.ids.map(i=>`<span class="chip">#${E(i)}</span>`).join('')}<div class="thumbs">${r.shots.map(s=>`<img src="${s}">`).join('')}</div>${r.links.map(l=>`<div class="mu" style="margin-top:6px">🎁 ${E(l)}</div>`).join('')}${r.comment?`<div class="card mu" style="margin:8px 0 0;padding:10px">💬 ${E(r.comment)}</div>`:''}
@@ -191,6 +193,19 @@ async function fetchCashbox() {
     render();
   } catch(e) {
     console.error('Ошибка загрузки кассы:', e);
+  }
+}
+
+async function resetCashbox() {
+  if (!confirm('Вы уверены, что хотите сбросить кассу? Все данные о профитах и выплатах будут удалены.')) return;
+  try {
+    await API('admin/reset_cashbox', {}); // Вызов POST запроса
+    toast('Касса сброшена');
+    fetchCashbox(); // Обновляем данные на экране
+    sync(); // Обновляем всё остальное
+  } catch(e) {
+    toast('Ошибка при сбросе');
+    console.error(e);
   }
 }
 
